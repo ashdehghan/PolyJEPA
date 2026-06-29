@@ -34,3 +34,6 @@ sandbox/
 
 # OS
 .DS_Store
+
+# Local-only agent guidance (kept on this machine, never published)
+CLAUDE.md
