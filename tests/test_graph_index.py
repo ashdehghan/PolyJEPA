@@ -5,6 +5,14 @@ from __future__ import annotations
 import torch
 
 from polyjepa.graph_index import GraphIndex
+from polyjepa.synthetic import planted_sbm
+
+
+def _partition(gi: GraphIndex) -> frozenset:
+    """Label-invariant snapshot of a built community partition."""
+    gi.community_of(0)  # force the lazy build
+    assert gi._communities is not None
+    return frozenset(frozenset(c.tolist()) for c in gi._communities)
 
 
 def _path4() -> GraphIndex:
@@ -63,3 +71,37 @@ def test_sample_sibling_none_when_no_candidate():
     # there is no non-neighbor sibling and sample_sibling returns None.
     gi = GraphIndex(torch.tensor([[0, 1, 2], [1, 2, 0]]), num_nodes=3)
     assert gi.sample_sibling(0, torch.Generator().manual_seed(0)) is None
+
+
+def test_community_partition_deterministic_per_seed():
+    # Same seed gives a byte-for-byte identical partition (the determinism
+    # contract). A fuzzy SBM where Louvain has genuine choices to make.
+    data = planted_sbm(
+        num_communities=5, nodes_per_comm=15, p_in=0.15, p_out=0.1, seed=0
+    )
+    n = int(data.num_nodes)
+    p1 = _partition(GraphIndex(data.edge_index, n, seed=3))
+    p2 = _partition(GraphIndex(data.edge_index, n, seed=3))
+    assert p1 == p2
+
+
+def test_community_partition_varies_across_seeds():
+    # The seed is threaded into Louvain, so the partition is not frozen across
+    # seeds. On a fuzzy graph, scanning several seeds yields more than one
+    # distinct partition. Fully deterministic: fixed graph, fixed seeds.
+    data = planted_sbm(
+        num_communities=5, nodes_per_comm=15, p_in=0.15, p_out=0.1, seed=0
+    )
+    n = int(data.num_nodes)
+    partitions = {
+        _partition(GraphIndex(data.edge_index, n, seed=s)) for s in range(10)
+    }
+    assert len(partitions) > 1
+
+
+def test_community_seed_none_falls_back_to_zero():
+    data = planted_sbm(num_communities=3, nodes_per_comm=12, seed=1)
+    n = int(data.num_nodes)
+    p_none = _partition(GraphIndex(data.edge_index, n, seed=None))
+    p_zero = _partition(GraphIndex(data.edge_index, n, seed=0))
+    assert p_none == p_zero

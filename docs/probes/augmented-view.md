@@ -20,6 +20,12 @@ stable.
 Because the target view changes every pass, this is the one probe whose
 `static_target` is `False`; the engine recomputes the target embedding each pass.
 
+Edge dropping operates on the stored edge list, which holds both directions of
+each undirected edge as separate columns. Dropping is per-column, so an edge can
+survive in one direction only, making message passing mildly asymmetric in the
+augmented views. This matches the GRACE/BGRL augmentation family and is
+intentional.
+
 ## What it tracks on real data
 
 Honestly, on these graphs probe E is **weak and diffuse**: in the

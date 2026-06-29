@@ -17,6 +17,11 @@ residual measures coherence at the community level rather than the local
 neighborhood. The residual is high when a node is an outlier within its own
 community.
 
+Louvain is seeded with the engine `seed`, so the detected partition is
+deterministic for a given seed but varies across seeds. A stability study over
+several seeds therefore sees genuine partition variation, not just sampling noise
+on one fixed partition.
+
 ## What it tracks on real data
 
 This probe behaves as intended: in the

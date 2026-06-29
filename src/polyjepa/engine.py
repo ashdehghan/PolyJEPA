@@ -74,6 +74,10 @@ class _TargetEMA:
         ):
             tp.data.mul_(momentum).add_(sp.data, alpha=1.0 - momentum)
         # Track encoder buffers (e.g. BatchNorm running stats) on the target.
+        # These are hard-copied, not EMA-blended: the target's normalization
+        # statistics equal the online encoder's exactly each step. This is an
+        # intentional choice that matches some BGRL implementations; only the
+        # parameters follow the EMA momentum.
         for tb, sb in zip(self.encoder.buffers(), source.buffers(), strict=True):
             tb.data.copy_(sb.data)
 
@@ -179,6 +183,8 @@ class JEPAEngine:
         if data.x is None:
             raise ValueError("JEPAEngine requires data.x")
         num_nodes = int(data.num_nodes)
+        if num_nodes == 0:
+            raise ValueError("JEPAEngine requires a non-empty graph")
         in_dim = int(data.x.shape[1])
         device = torch.device(self.device)
 
@@ -190,7 +196,7 @@ class JEPAEngine:
 
         x = data.x.float().to(device)
         edge_index = data.edge_index.to(device)
-        self._index = GraphIndex(data.edge_index, num_nodes)
+        self._index = GraphIndex(data.edge_index, num_nodes, seed=self.seed)
         if self.probe.needs_communities:
             self._index.community_of(0)  # force community build up front
 

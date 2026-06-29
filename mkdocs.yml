@@ -1,5 +1,8 @@
 site_name: PolyJEPA
 site_description: A multi-probe Joint-Embedding Predictive Architecture that fingerprints graphs
+site_url: https://polyjepa.readthedocs.io
+repo_url: https://github.com/ashdehghan/PolyJEPA
+repo_name: ashdehghan/PolyJEPA
 docs_dir: docs
 use_directory_urls: true
 

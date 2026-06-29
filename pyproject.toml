@@ -4,9 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "polyjepa"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A multi-probe Joint-Embedding Predictive Architecture that fingerprints graphs"
 readme = "README.md"
+# Lower bound only; 3.13+ is allowed but currently untested (see classifiers).
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "Ash", email = "ash@anomalypoint.com" }]
@@ -57,13 +58,16 @@ docs = [
     "mkdocstrings[python]>=0.26",
     "pymdown-extensions>=10",
     "matplotlib>=3.7",
-    "scikit-learn>=1.2",
 ]
 
 [project.urls]
-Homepage = "https://github.com/anomalypoint/polyjepa"
-Repository = "https://github.com/anomalypoint/polyjepa"
-Issues = "https://github.com/anomalypoint/polyjepa/issues"
+Homepage = "https://github.com/ashdehghan/PolyJEPA"
+Repository = "https://github.com/ashdehghan/PolyJEPA"
+Documentation = "https://polyjepa.readthedocs.io"
+Issues = "https://github.com/ashdehghan/PolyJEPA/issues"
+
+[tool.hatch.version]
+path = "src/polyjepa/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/polyjepa"]

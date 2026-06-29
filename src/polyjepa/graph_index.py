@@ -3,8 +3,9 @@
 A ``GraphIndex`` is built once per graph and shared across the probes. It holds
 the 1-hop adjacency (as CPU ``LongTensor`` lists), computes 2-hop rings on
 demand, and lazily detects communities (NetworkX Louvain) for the
-community-sibling probe. All randomness is delegated to a caller-supplied
-``torch.Generator`` so results are reproducible.
+community-sibling probe. Sibling sampling is delegated to a caller-supplied
+``torch.Generator``, and community detection uses the ``seed`` passed at
+construction, so results are reproducible and the partition varies with the seed.
 """
 
 from __future__ import annotations
@@ -13,8 +14,13 @@ import torch
 
 
 class GraphIndex:
-    def __init__(self, edge_index: torch.Tensor, num_nodes: int) -> None:
+    def __init__(
+        self, edge_index: torch.Tensor, num_nodes: int, seed: int | None = 0
+    ) -> None:
         self.num_nodes = num_nodes
+        # Seed for Louvain community detection; threaded from the engine seed so
+        # the partition is deterministic per seed but varies across seeds.
+        self._seed = seed
         src = edge_index[0].cpu().tolist()
         dst = edge_index[1].cpu().tolist()
         adj: list[set[int]] = [set() for _ in range(num_nodes)]
@@ -67,7 +73,9 @@ class GraphIndex:
                 if u > v:
                     g.add_edge(v, u)
         # Deterministic given the seed argument; Louvain is randomized otherwise.
-        comms = nx.community.louvain_communities(g, seed=0)
+        comms = nx.community.louvain_communities(
+            g, seed=self._seed if self._seed is not None else 0
+        )
         node_comm = torch.full((self.num_nodes,), -1, dtype=torch.long)
         comm_tensors: list[torch.Tensor] = []
         for cid, members in enumerate(comms):

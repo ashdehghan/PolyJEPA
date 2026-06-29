@@ -100,6 +100,14 @@ class _MaskedNeighborProbe(PairDesign):
     Subclasses implement ``_targets(ctx, v)`` returning the target node ids for
     focal node ``v``. All such target nodes are masked in the context view; the
     focal node itself stays visible.
+
+    Known limitation: masking is shared across the whole focal chunk (one context
+    graph per chunk). When a focal node is also another focal's target (a common
+    case on dense graphs at the default ``focal_ratio``), it is masked, yet its
+    own prediction is still read. The objective therefore mixes a few
+    masked-input focal predictions in. This is accepted for now; revisiting it
+    (per-focal masking, a focal-exclusion rule, or smaller chunks) is deferred to
+    a later rigorous pass.
     """
 
     def _targets(self, ctx: PairContext, v: int) -> torch.Tensor:

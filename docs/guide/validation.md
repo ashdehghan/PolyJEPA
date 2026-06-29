@@ -39,7 +39,9 @@ of the matching probe.
 Exact floating-point results are not guaranteed across PyTorch versions or
 platforms, so the suite asserts stable behavioral properties (rankings, signs,
 separations, cross-probe distinctness) plus within-run determinism (same seed gives
-an identical fingerprint), rather than pinning exact numbers. See the
+an identical fingerprint), rather than pinning exact numbers. The seed reaches
+every source of randomness, including Louvain community detection, so probe F's
+partition is fixed per seed and varies across seeds. See the
 [development guide](../development.md).
 
 ## Honest scope

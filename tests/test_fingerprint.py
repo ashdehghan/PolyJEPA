@@ -6,6 +6,7 @@ import torch
 from tests.conftest import fast_kwargs
 
 from polyjepa import RecoverFocal, SampledNeighbor, fingerprint
+from polyjepa.fingerprint import _cross_probe_spearman
 
 
 def test_fingerprint_full_shape(sbm_bridges):
@@ -39,6 +40,22 @@ def test_descriptors_present(sbm_bridges):
     for key in ("mean", "std", "skew", "p10", "p50", "p90", "gini", "n_scored"):
         assert key in d
     assert d["pooled_embedding"].shape[0] == fp.embeddings["A"].shape[1]
+
+
+def test_cross_probe_diagonal_is_unit_even_for_constant_column():
+    """A constant residual column has zero variance, so spearmanr returns NaN;
+    the diagonal must still be 1.0 by definition (a probe ranks itself perfectly).
+    """
+    residuals = torch.tensor(
+        [
+            [1.0, 5.0],
+            [2.0, 5.0],  # column 1 is constant
+            [3.0, 5.0],
+            [4.0, 5.0],
+        ]
+    )
+    m = _cross_probe_spearman(residuals)
+    assert torch.allclose(m.diagonal(), torch.ones(2))
 
 
 def test_full_fingerprint_is_deterministic(sbm_bridges):

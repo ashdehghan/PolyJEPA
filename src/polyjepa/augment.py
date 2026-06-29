@@ -13,7 +13,13 @@ import torch
 def drop_edges(
     edge_index: torch.Tensor, p: float, generator: torch.Generator
 ) -> torch.Tensor:
-    """Randomly drop a fraction ``p`` of edges. Returns a new ``edge_index``."""
+    """Randomly drop a fraction ``p`` of edges. Returns a new ``edge_index``.
+
+    Dropping is per-column. An undirected edge is stored as two columns (one per
+    direction), so a given edge may survive in only one direction, making the
+    augmented view's message passing mildly asymmetric. This is intentional and
+    matches the GRACE/BGRL augmentation family.
+    """
     if p <= 0.0 or edge_index.numel() == 0:
         return edge_index
     num_edges = edge_index.shape[1]

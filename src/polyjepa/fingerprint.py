@@ -62,6 +62,11 @@ def _cross_probe_spearman(residuals: torch.Tensor) -> torch.Tensor:
     out = np.full((p, p), np.nan)
     for i in range(p):
         for j in range(p):
+            if i == j:
+                # A probe is perfectly rank-correlated with itself by definition;
+                # spearmanr returns NaN for a constant column, so set it directly.
+                out[i, j] = 1.0
+                continue
             a, b = arr[:, i], arr[:, j]
             ok = np.isfinite(a) & np.isfinite(b)
             if ok.sum() >= 3:

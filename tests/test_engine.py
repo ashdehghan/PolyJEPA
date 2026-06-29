@@ -167,6 +167,15 @@ def test_fit_requires_node_features(sbm_bridges):
         JEPAEngine(RecoverFocal(), **fast_kwargs(epochs=2)).fit(no_x)
 
 
+def test_fit_rejects_empty_graph():
+    from torch_geometric.data import Data
+
+    empty = Data(x=torch.zeros(0, 4), edge_index=torch.zeros(2, 0, dtype=torch.long))
+    empty.num_nodes = 0
+    with pytest.raises(ValueError, match="non-empty graph"):
+        JEPAEngine(RecoverFocal(), **fast_kwargs(epochs=2)).fit(empty)
+
+
 def test_runs_without_seed(sbm_bridges):
     eng = JEPAEngine(
         RecoverFocal(), epochs=10, hidden_dim=32, latent_dim=32, seed=None
