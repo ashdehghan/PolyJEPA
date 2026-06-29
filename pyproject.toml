@@ -1,0 +1,107 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "polyjepa"
+version = "0.1.0"
+description = "A multi-probe Joint-Embedding Predictive Architecture that fingerprints graphs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Ash", email = "ash@anomalypoint.com" }]
+maintainers = [{ name = "Ash", email = "ash@anomalypoint.com" }]
+keywords = [
+    "graph neural networks",
+    "self-supervised learning",
+    "joint-embedding predictive architecture",
+    "jepa",
+    "representation learning",
+    "graph fingerprint",
+    "node embeddings",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+
+# Self-contained: depends only on PyTorch, PyG, and standard scientific Python.
+dependencies = [
+    "torch>=2.0",
+    "torch_geometric>=2.4",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "networkx>=3.0",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.7"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.0",
+    "ruff>=0.4",
+    "build>=1.0",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+    "pymdown-extensions>=10",
+    "matplotlib>=3.7",
+    "scikit-learn>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/anomalypoint/polyjepa"
+Repository = "https://github.com/anomalypoint/polyjepa"
+Issues = "https://github.com/anomalypoint/polyjepa/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/polyjepa"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not slow' --strict-markers"
+markers = [
+    "slow: training-heavy or dataset/network tests (deselect with '-m \"not slow\"')",
+    "network: tests that need a dataset download or network access",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["polyjepa"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.ruff]
+target-version = "py310"
+src = ["src", "tests"]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

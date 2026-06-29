@@ -1,0 +1,101 @@
+site_name: PolyJEPA
+site_description: A multi-probe Joint-Embedding Predictive Architecture that fingerprints graphs
+docs_dir: docs
+use_directory_urls: true
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_bases: false
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            merge_init_into_class: true
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Concepts:
+      - The architecture: concepts/architecture.md
+      - The fingerprint: concepts/fingerprint.md
+  - Probes:
+      - Overview: probes/index.md
+      - A · Recover focal: probes/recover-focal.md
+      - B · Pooled neighborhood: probes/pooled-neighborhood.md
+      - C · Sampled neighbor: probes/sampled-neighbor.md
+      - D · Two-hop ring: probes/two-hop-ring.md
+      - E · Augmented view: probes/augmented-view.md
+      - F · Community sibling: probes/community-sibling.md
+  - Guide:
+      - Quickstart: guide/quickstart.md
+      - Interpreting the fingerprint: guide/interpreting-the-fingerprint.md
+      - Validation methodology: guide/validation.md
+  - API reference:
+      - fingerprint: reference/fingerprint.md
+      - engine: reference/engine.md
+      - pair designs: reference/pair_design.md
+      - probes: reference/probes.md
+      - backbones: reference/backbones.md
+      - synthetic: reference/synthetic.md
+  - Development: development.md

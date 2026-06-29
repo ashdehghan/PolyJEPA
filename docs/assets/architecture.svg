@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 210" font-family="-apple-system,Helvetica Neue,Arial,sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2b2b2b"/>
+    </marker>
+    <marker id="ahl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#777"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="210" rx="8" fill="#ffffff"/>
+
+  <!-- context branch -->
+  <rect x="24" y="58" width="120" height="46" rx="5" fill="#eef0f2" stroke="#9aa0a6" stroke-width="1.3"/>
+  <text x="84" y="80" text-anchor="middle" font-size="14" fill="#1a1a1a">context X<tspan baseline-shift="sub" font-size="10">M</tspan></text>
+  <text x="84" y="96" text-anchor="middle" font-size="10.5" fill="#666">masked view</text>
+
+  <rect x="176" y="58" width="120" height="46" rx="5" fill="#dfe3e8" stroke="#6b7280" stroke-width="1.3"/>
+  <text x="236" y="80" text-anchor="middle" font-size="14" fill="#1a1a1a">f<tspan baseline-shift="sub" font-size="10">θ</tspan> (GCN)</text>
+  <text x="236" y="96" text-anchor="middle" font-size="10.5" fill="#666">context encoder</text>
+
+  <rect x="328" y="58" width="120" height="46" rx="5" fill="#dfe3e8" stroke="#6b7280" stroke-width="1.3"/>
+  <text x="388" y="80" text-anchor="middle" font-size="14" fill="#1a1a1a">g<tspan baseline-shift="sub" font-size="10">φ</tspan> (MLP)</text>
+  <text x="388" y="96" text-anchor="middle" font-size="10.5" fill="#666">predictor</text>
+
+  <rect x="490" y="56" width="170" height="50" rx="5" fill="#f4f4f4" stroke="#2b2b2b" stroke-width="1.3"/>
+  <text x="575" y="80" text-anchor="middle" font-size="14" fill="#1a1a1a">‖ z<tspan baseline-shift="sub" font-size="10">pred</tspan> − z<tspan baseline-shift="sub" font-size="10">tgt</tspan> ‖²</text>
+  <text x="575" y="96" text-anchor="middle" font-size="10.5" fill="#666">per-node residual</text>
+
+  <!-- target branch -->
+  <rect x="710" y="58" width="150" height="46" rx="5" fill="#c9ced4" stroke="#3a3f45" stroke-width="1.3"/>
+  <text x="785" y="80" text-anchor="middle" font-size="14" fill="#1a1a1a">f<tspan baseline-shift="sub" font-size="10">ξ</tspan> (EMA, sg)</text>
+  <text x="785" y="96" text-anchor="middle" font-size="10.5" fill="#666">target encoder</text>
+
+  <rect x="710" y="138" width="150" height="38" rx="5" fill="#eef0f2" stroke="#9aa0a6" stroke-width="1.3"/>
+  <text x="785" y="161" text-anchor="middle" font-size="13" fill="#1a1a1a">clean view X</text>
+
+  <!-- arrows -->
+  <path d="M 144 81 L 176 81" fill="none" stroke="#2b2b2b" stroke-width="1.4" marker-end="url(#ah)"/>
+  <path d="M 296 81 L 328 81" fill="none" stroke="#2b2b2b" stroke-width="1.4" marker-end="url(#ah)"/>
+  <path d="M 448 81 L 490 81" fill="none" stroke="#2b2b2b" stroke-width="1.4" marker-end="url(#ah)"/>
+  <path d="M 785 138 L 785 106" fill="none" stroke="#2b2b2b" stroke-width="1.4" marker-end="url(#ah)"/>
+  <path d="M 710 150 L 660 120 L 660 106" fill="none" stroke="#2b2b2b" stroke-width="1.4" marker-end="url(#ah)"/>
+  <path d="M 710 81 L 660 81" fill="none" stroke="#888" stroke-width="1.1" stroke-dasharray="2 3" marker-end="url(#ahl)"/>
+  <text x="676" y="74" text-anchor="middle" font-size="9.5" fill="#777" font-style="italic">stop-grad</text>
+
+  <!-- EMA dotted under -->
+  <path d="M 236 104 Q 510 196 785 104" fill="none" stroke="#777" stroke-width="1.2" stroke-dasharray="1.5 3" marker-end="url(#ahl)"/>
+  <text x="510" y="190" text-anchor="middle" font-size="10.5" fill="#555" font-style="italic">EMA:  ξ ← τ·ξ + (1−τ)·θ,   τ: 0.99 → 1</text>
+</svg>

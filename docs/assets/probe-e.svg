@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 150" font-family="-apple-system,Helvetica Neue,Arial,sans-serif">
+  <rect x="0" y="0" width="260" height="150" rx="8" fill="#ffffff"/>
+  <!-- view A -->
+  <g stroke="#b9bec4" stroke-width="1.4">
+    <line x1="48" y1="70" x2="26" y2="42"/>
+    <line x1="48" y1="70" x2="74" y2="44"/>
+    <line x1="48" y1="70" x2="40" y2="104"/>
+  </g>
+  <g fill="#ffffff" stroke="#6b7280" stroke-width="1.3">
+    <circle cx="26" cy="42" r="9"/><circle cx="74" cy="44" r="9"/><circle cx="40" cy="104" r="9"/>
+  </g>
+  <circle cx="48" cy="70" r="13" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.2"/>
+  <text x="48" y="74" text-anchor="middle" font-size="11" font-style="italic" font-weight="700" fill="#1a1a1a">v</text>
+  <text x="48" y="128" text-anchor="middle" font-size="10" fill="#666">view A</text>
+
+  <!-- view B (one edge dropped) -->
+  <g stroke="#b9bec4" stroke-width="1.4">
+    <line x1="212" y1="70" x2="190" y2="42"/>
+    <line x1="212" y1="70" x2="220" y2="104"/>
+  </g>
+  <g fill="#ffffff" stroke="#6b7280" stroke-width="1.3">
+    <circle cx="190" cy="42" r="9"/><circle cx="236" cy="44" r="9"/><circle cx="220" cy="104" r="9"/>
+  </g>
+  <circle cx="212" cy="70" r="16" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="212" cy="70" r="13" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.2"/>
+  <text x="212" y="74" text-anchor="middle" font-size="11" font-style="italic" font-weight="700" fill="#1a1a1a">v</text>
+  <text x="212" y="128" text-anchor="middle" font-size="10" fill="#666">view B</text>
+
+  <!-- predict arrow -->
+  <defs>
+    <marker id="aE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <path d="M 66 70 L 192 70" fill="none" stroke="#555" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#aE)"/>
+  <text x="129" y="64" text-anchor="middle" font-size="10" font-style="italic" fill="#555">predict</text>
+</svg>

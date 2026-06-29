@@ -1,0 +1,39 @@
+/* Figures: centered, framed, with captions. */
+.md-typeset figure {
+  margin: 1.4em auto;
+  text-align: center;
+}
+.md-typeset figure img,
+.md-typeset p > img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.md-typeset figure.bordered img {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: #fff;
+}
+.md-typeset figcaption {
+  font-size: 0.78rem;
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.4em;
+}
+
+/* Probe grid-card lettered badges. */
+.probe-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 700;
+  margin-right: 0.35em;
+}
+
+/* Slightly tighter tables. */
+.md-typeset table:not([class]) th {
+  font-weight: 700;
+}

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Virtual envs
+.venv/
+venv/
+
+# Datasets (downloaded on demand)
+datasets/
+
+# MkDocs build output
+site/
+
+# Scratch / experiments (never tracked)
+sandbox/
+
+# OS
+.DS_Store
