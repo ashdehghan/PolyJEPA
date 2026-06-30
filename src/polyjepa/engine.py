@@ -55,16 +55,29 @@ class _Predictor(nn.Module):
 
 
 class _TargetEMA:
-    """EMA copy of the encoder; forward is no-grad, in eval mode."""
+    """EMA copy of the encoder; forward is no-grad with batch-statistic BatchNorm.
+
+    Stop-gradient (the no-grad forward) and EMA on the parameters are the
+    anti-collapse devices. BatchNorm runs in train mode so the target normalizes
+    with the statistics of the view it actually encodes, consistent with the
+    online branch. The earlier design ran the target in eval mode using running
+    statistics hard-copied from the online encoder; but the online encoder gathers
+    those statistics on the *masked* context view, so a probe that masks a large
+    fraction of the graph (B masks all 1-hop neighbors, D the whole 2-hop ring)
+    drives the target's eval-mode normalization far from the clean target view and
+    the embeddings explode (loss and embedding std diverge by orders of
+    magnitude). Batch-statistic normalization removes that train/eval mismatch.
+    """
 
     def __init__(self, encoder: nn.Module) -> None:
         self.encoder = copy.deepcopy(encoder)
         for p in self.encoder.parameters():
             p.requires_grad_(False)
-        self.encoder.eval()
+        self.encoder.train()  # batch-statistic BatchNorm, like the online branch
 
     @torch.no_grad()
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        self.encoder.train()
         return self.encoder(x, edge_index)
 
     @torch.no_grad()
@@ -73,13 +86,10 @@ class _TargetEMA:
             self.encoder.parameters(), source.parameters(), strict=True
         ):
             tp.data.mul_(momentum).add_(sp.data, alpha=1.0 - momentum)
-        # Track encoder buffers (e.g. BatchNorm running stats) on the target.
-        # These are hard-copied, not EMA-blended: the target's normalization
-        # statistics equal the online encoder's exactly each step. This is an
-        # intentional choice that matches some BGRL implementations; only the
-        # parameters follow the EMA momentum.
-        for tb, sb in zip(self.encoder.buffers(), source.buffers(), strict=True):
-            tb.data.copy_(sb.data)
+        # Only the parameters follow the EMA. The target's BatchNorm running
+        # buffers are intentionally left unused: the target normalizes with batch
+        # statistics (see class docstring), so it never reads stale running stats
+        # gathered on the masked context view.
 
     def to(self, device: torch.device) -> _TargetEMA:
         self.encoder.to(device)
@@ -104,9 +114,36 @@ class Diagnostics:
     embed_std: list[float] = field(default_factory=list)
     embed_norm: list[float] = field(default_factory=list)
 
-    def healthy(self, std_floor: float = 1e-3) -> bool:
-        """True if the final embedding std is above a collapse floor."""
-        return bool(self.embed_std) and self.embed_std[-1] > std_floor
+    def healthy(
+        self,
+        std_floor: float = 1e-3,
+        std_ceiling: float = 10.0,
+        loss_ratio_max: float = 5.0,
+    ) -> bool:
+        """True if training neither collapsed nor diverged.
+
+        Three conditions on the logged diagnostics:
+
+        - the final embedding std is above ``std_floor`` (no collapse to a
+          constant, the BGRL signal), and
+        - the final embedding std is below ``std_ceiling`` (no explosion: with
+          BatchNorm a healthy std is order 1, so a value of tens or thousands is
+          divergence), and
+        - the final loss is not more than ``loss_ratio_max`` times the first
+          logged loss (the loss decreased rather than blowing up).
+
+        The ceiling and loss check were added after the pooled-target probes were
+        found to diverge while the floor-only check still reported healthy.
+        """
+        if not self.embed_std:
+            return False
+        last = self.embed_std[-1]
+        if not (std_floor < last < std_ceiling):
+            return False
+        if self.losses and self.losses[0] > 0:
+            if self.losses[-1] > loss_ratio_max * self.losses[0]:
+                return False
+        return True
 
 
 class JEPAEngine:

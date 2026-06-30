@@ -11,7 +11,8 @@ from torch import nn
 
 from polyjepa import JEPAEngine, PooledNeighborhood, RecoverFocal
 from polyjepa.backbones import build_backbone
-from polyjepa.engine import _Predictor, _TargetEMA
+from polyjepa.engine import Diagnostics, _Predictor, _TargetEMA
+from polyjepa.probes import TwoHopRing
 
 
 def test_score_shape_and_finite(sbm_bridges):
@@ -45,6 +46,39 @@ def test_loss_improves(sbm_bridges):
     eng = JEPAEngine(RecoverFocal(), **fast_kwargs(epochs=200)).fit(sbm_bridges)
     losses = eng.diagnostics.losses
     assert min(losses) < losses[0]  # training reduced the loss at some point
+
+
+@pytest.mark.parametrize("probe", [PooledNeighborhood, TwoHopRing])
+def test_pooled_target_probes_do_not_diverge(sbm_bridges, probe):
+    """B and D pool a *set* of target nodes and mask a large fraction of the
+    context. With eval-mode target BatchNorm they diverged (embedding std blew up
+    to tens/thousands while the loss exploded); the target now normalizes with
+    batch statistics. Guard that the embeddings stay bounded and training does not
+    blow up over a long-ish run.
+    """
+    eng = JEPAEngine(probe(), **fast_kwargs(epochs=200)).fit(sbm_bridges)
+    d = eng.diagnostics
+    assert d.embed_std[-1] < 10.0  # no explosion (healthy is order 1)
+    assert d.losses[-1] < 5.0 * d.losses[0]  # did not diverge
+    assert d.healthy()
+
+
+def test_healthy_accepts_normal_training():
+    d = Diagnostics(steps=[0, 50], losses=[40.0, 4.0], embed_std=[0.4, 0.7],
+                    embed_norm=[1.0, 1.0])
+    assert d.healthy()
+
+
+def test_healthy_rejects_collapse():
+    d = Diagnostics(steps=[0, 50], losses=[40.0, 0.0], embed_std=[0.4, 1e-6],
+                    embed_norm=[1.0, 0.0])
+    assert not d.healthy()  # std below the floor = collapse to a constant
+
+
+def test_healthy_rejects_explosion():
+    d = Diagnostics(steps=[0, 50], losses=[28.0, 9e5], embed_std=[0.4, 78.0],
+                    embed_norm=[1.0, 500.0])
+    assert not d.healthy()  # std above the ceiling and loss blew up = divergence
 
 
 def test_embedding_shape(sbm_bridges):

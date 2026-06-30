@@ -51,8 +51,18 @@ prevents this the way BGRL (Thakoor et al., 2022) and I-JEPA do:
 3. the **predictor on the online branch only**;
 4. **BatchNorm** in the encoder, which centers the embeddings.
 
+The target encoder's BatchNorm runs with **batch statistics** (the same view it
+encodes), not running statistics. This matters because a probe's context view can
+mask a large fraction of the graph (B masks every 1-hop neighbor, D the whole 2-hop
+ring): running statistics gathered on that masked context view, if applied to the
+clean target view, push the target's normalization far off and the embeddings
+explode. Batch-statistic normalization keeps the online and target branches
+consistent and removes that failure mode.
+
 Training logs the embedding standard deviation; `Diagnostics.healthy()` confirms it
-stays above a floor. See [`JEPAEngine`](../reference/engine.md).
+stays within a healthy band: above a floor (no collapse to a constant) **and** below
+a ceiling, with the loss not blowing up (no divergence). See
+[`JEPAEngine`](../reference/engine.md).
 
 ## Pluggable backbone
 

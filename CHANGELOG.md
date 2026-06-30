@@ -15,6 +15,15 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `polyjepa.__version__`.
 
 ### Fixed
+- The pooled-target probes (B `PooledNeighborhood`, D `TwoHopRing`) no longer
+  diverge during training. The EMA target encoder ran BatchNorm in eval mode using
+  running statistics hard-copied from the online encoder, which gathers them on the
+  heavily-masked context view; applied to the clean target view this exploded the
+  embeddings (loss and embedding std diverged by orders of magnitude). The target
+  now normalizes with batch statistics, consistent with the online branch.
+- `Diagnostics.healthy()` now catches divergence, not only collapse: it requires the
+  final embedding std to stay below a ceiling and the loss not to blow up, in
+  addition to the existing collapse floor.
 - The cross-probe Spearman matrix now always has a unit diagonal, even when a
   probe's residual column is constant.
 - `JEPAEngine.fit` guards against empty graphs instead of indexing out of bounds.
