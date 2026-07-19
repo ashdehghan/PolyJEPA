@@ -116,6 +116,11 @@ def _ridge(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     return RidgeCV(alphas=np.logspace(-3, 4, 30)).fit(X, y).coef_
 
 
+def _coef_is_degenerate(coef: np.ndarray, tol: float = 1e-6) -> bool:
+    """True if ridge collapsed to all-zero (no signal case)."""
+    return float(np.abs(coef).max()) < tol
+
+
 # ---------------------------------------------------------------------------
 # Per-dataset processing
 # ---------------------------------------------------------------------------
@@ -165,7 +170,14 @@ def process_dataset(ds: str, fp_epochs: int, fp_seed: int) -> None:
     X_probe = (arrival @ R_z) / n
     gamma = _ridge(X_probe, val)
     probe_scores_raw = R_z @ gamma   # (n_train,) predicted benefit of early training
-    rank_probe = probe_scores_raw.argsort().argsort() / (n - 1)
+    if _coef_is_degenerate(gamma):
+        # No signal: use uniform random ordering (not index order, which is not neutral)
+        rng = np.random.default_rng(42)
+        rank_probe = rng.permutation(n).argsort() / (n - 1)
+        gamma_note = "DEGENERATE (random fallback)"
+    else:
+        rank_probe = probe_scores_raw.argsort().argsort() / (n - 1)
+        gamma_note = ""
     W_probe = _make_sweep(rank_probe, flat_tail)
     scores_probe = _score_arm(data, W_probe)
 
@@ -173,7 +185,13 @@ def process_dataset(ds: str, fp_epochs: int, fp_seed: int) -> None:
     # β ≈ R_z @ δ  — can probe features predict per-node compass coefficients?
     delta = _ridge(R_z, beta_raw)
     beta_pred = R_z @ delta
-    rank_beta_pred = beta_pred.argsort().argsort() / (n - 1)
+    if _coef_is_degenerate(delta):
+        rng2 = np.random.default_rng(43)
+        rank_beta_pred = rng2.permutation(n).argsort() / (n - 1)
+        delta_note = "DEGENERATE (random fallback)"
+    else:
+        rank_beta_pred = beta_pred.argsort().argsort() / (n - 1)
+        delta_note = ""
     W_beta_pred = _make_sweep(rank_beta_pred, flat_tail)
     scores_beta_pred = _score_arm(data, W_beta_pred)
 
@@ -205,8 +223,8 @@ def process_dataset(ds: str, fp_epochs: int, fp_seed: int) -> None:
         }
 
     print(f"\n  probe-β prediction R² (β ≈ R_z @ δ): {beta_r2:.4f}")
-    print(f"  gamma (probe compass coefs):  {np.round(gamma, 3)}")
-    print(f"  delta (probe-β pred coefs):   {np.round(delta[:6], 3)}")
+    print(f"  gamma (probe compass coefs):  {np.round(gamma, 3)} {gamma_note}")
+    print(f"  delta (probe-β pred coefs):   {np.round(delta[:6], 3)} {delta_note}")
 
     out = {
         "dataset": ds,
