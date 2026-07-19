@@ -101,14 +101,17 @@ class _MaskedNeighborProbe(PairDesign):
     focal node ``v``. All such target nodes are masked in the context view; the
     focal node itself stays visible.
 
-    Known limitation: masking is shared across the whole focal chunk (one context
-    graph per chunk). When a focal node is also another focal's target (a common
-    case on dense graphs at the default ``focal_ratio``), it is masked, yet its
-    own prediction is still read. The objective therefore mixes a few
-    masked-input focal predictions in. This is accepted for now; revisiting it
-    (per-focal masking, a focal-exclusion rule, or smaller chunks) is deferred to
-    a later rigorous pass.
+    Masking design: the context graph masks the UNION of all focal nodes' target
+    sets in a chunk. For probes B and D (full 1-hop / 2-hop neighborhoods), this
+    union covers 96–100% of the graph at the default focal_ratio=0.30, making the
+    context featureless and the residuals invalid. Setting ``per_focal_scoring =
+    True`` instructs the engine to score each node in a singleton focal chunk
+    (one node at a time), so the union collapses to just that node's targets.
+    Training is unaffected (the encoder still learns a useful representation even
+    with the union masking; only the stored fingerprint residuals are corrected).
     """
+
+    per_focal_scoring: bool = True
 
     def _targets(self, ctx: PairContext, v: int) -> torch.Tensor:
         raise NotImplementedError

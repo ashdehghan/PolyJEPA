@@ -56,6 +56,31 @@ def _descriptors(residual: torch.Tensor, embedding: torch.Tensor) -> dict:
     return stats
 
 
+def _col_zscore(R: torch.Tensor) -> torch.Tensor:
+    """Column-wise z-score of a (N, P) residual matrix.
+
+    NaN entries (unscored nodes) are filled with the column median before
+    z-scoring so they don't bias the mean/std, then restored as NaN afterward.
+    This makes all six probe columns commensurable: each contributes unit
+    variance to any downstream distance or regression computation.
+    """
+    arr = R.numpy().copy()
+    nan_mask = ~np.isfinite(arr)
+    for c in range(arr.shape[1]):
+        col = arr[:, c]
+        finite = col[np.isfinite(col)]
+        if finite.size == 0:
+            continue
+        median = float(np.median(finite))
+        arr[nan_mask[:, c], c] = median
+        mu = arr[:, c].mean()
+        sigma = arr[:, c].std()
+        arr[:, c] = (arr[:, c] - mu) / (sigma if sigma > 1e-8 else 1.0)
+    # Restore NaNs so callers can still detect unscored nodes if needed.
+    arr[nan_mask] = float("nan")
+    return torch.from_numpy(arr).float()
+
+
 def _cross_probe_spearman(residuals: torch.Tensor) -> torch.Tensor:
     arr = residuals.numpy()
     p = arr.shape[1]
@@ -80,7 +105,8 @@ class Fingerprint:
     """Two-layer fingerprint of a graph produced by the PolyJEPA probes."""
 
     probe_names: list[str]
-    residuals: torch.Tensor  # (N, P), may contain NaN for unscored nodes
+    residuals: torch.Tensor      # (N, P) column-z-scored — commensurable across probes
+    residuals_raw: torch.Tensor  # (N, P) raw squared-L2 — for diagnostics / backward compat
     embeddings: dict[str, torch.Tensor]  # name -> (N, d)
     graph_descriptors: dict[str, dict]  # name -> stats
     cross_probe: torch.Tensor  # (P, P) Spearman
@@ -127,11 +153,13 @@ def fingerprint(
         descriptors[name] = _descriptors(resid, emb)
         diagnostics[name] = engine.diagnostics
 
-    residuals = torch.stack(residual_cols, dim=1)
+    residuals_raw = torch.stack(residual_cols, dim=1)   # (N, P) raw squared-L2
+    residuals = _col_zscore(residuals_raw)               # (N, P) column z-scored
     cross = _cross_probe_spearman(residuals)
     return Fingerprint(
         probe_names=names,
         residuals=residuals,
+        residuals_raw=residuals_raw,
         embeddings=embeddings,
         graph_descriptors=descriptors,
         cross_probe=cross,

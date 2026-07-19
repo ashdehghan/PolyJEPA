@@ -113,16 +113,18 @@ class Diagnostics:
     losses: list[float] = field(default_factory=list)
     embed_std: list[float] = field(default_factory=list)
     embed_norm: list[float] = field(default_factory=list)
+    epoch0_embed_std: float | None = None  # embed_std before any training
 
     def healthy(
         self,
         std_floor: float = 1e-3,
         std_ceiling: float = 10.0,
         loss_ratio_max: float = 5.0,
+        loss_ratio_min: float = 0.90,
     ) -> bool:
-        """True if training neither collapsed nor diverged.
+        """True if training neither collapsed nor diverged and the loss improved.
 
-        Three conditions on the logged diagnostics:
+        Four conditions on the logged diagnostics:
 
         - the final embedding std is above ``std_floor`` (no collapse to a
           constant, the BGRL signal), and
@@ -130,10 +132,18 @@ class Diagnostics:
           BatchNorm a healthy std is order 1, so a value of tens or thousands is
           divergence), and
         - the final loss is not more than ``loss_ratio_max`` times the first
-          logged loss (the loss decreased rather than blowing up).
+          logged loss (the loss decreased rather than blowing up), and
+        - the final loss is at most ``loss_ratio_min`` times the first logged
+          loss (the loss actually improved by at least the min ratio). With
+          BatchNorm the embed_std is pinned near 0.67 for both trained and
+          untrained encoders, so this loss-improvement check is the primary
+          signal that training did something useful.
 
-        The ceiling and loss check were added after the pooled-target probes were
-        found to diverge while the floor-only check still reported healthy.
+        The ceiling and loss-ratio-max checks were added after the pooled-target
+        probes were found to diverge while the floor-only check still passed.
+        The loss-ratio-min check was added after discovering that BatchNorm pins
+        embed_std at ~0.67 regardless of training, making the std checks
+        insufficient to detect a failed (untrained) encoder.
         """
         if not self.embed_std:
             return False
@@ -141,7 +151,10 @@ class Diagnostics:
         if not (std_floor < last < std_ceiling):
             return False
         if self.losses and self.losses[0] > 0:
-            if self.losses[-1] > loss_ratio_max * self.losses[0]:
+            ratio = self.losses[-1] / self.losses[0]
+            if ratio > loss_ratio_max:
+                return False
+            if ratio > loss_ratio_min:
                 return False
         return True
 
@@ -259,6 +272,11 @@ class JEPAEngine:
             params, lr=self.lr, weight_decay=self.weight_decay
         )
 
+        # Capture untrained baseline before any gradient steps.
+        with torch.no_grad():
+            _z0 = target.forward(x, edge_index)
+            self.diagnostics.epoch0_embed_std = float(_z0.std(dim=0).mean().cpu())
+
         n_focal = max(1, int(round(self.focal_ratio * num_nodes)))
         for step in range(self.epochs):
             encoder.train()
@@ -342,12 +360,29 @@ class JEPAEngine:
         scores = torch.zeros(num_nodes, device=device)
         counts = torch.zeros(num_nodes, device=device)
 
+        # Per-focal-scoring probes (B, D) need singleton focal chunks so that
+        # each node's context only masks that node's own targets, not the union
+        # across a whole chunk. The flag is checked once per outer loop to avoid
+        # re-evaluating getattr on every inner iteration.
+        _per_focal = getattr(self.probe, "per_focal_scoring", False)
+
         for _ in range(self.score_passes):
-            for chunk in _sweep_chunks(num_nodes, self.focal_ratio, gen):
+            if _per_focal:
+                focal_chunks = [
+                    torch.tensor([v], dtype=torch.long, device=device)
+                    for v in torch.randperm(num_nodes, generator=gen).tolist()
+                ]
+            else:
+                focal_chunks = [
+                    c.to(device)
+                    for c in _sweep_chunks(num_nodes, self.focal_ratio, gen)
+                ]
+
+            for focal_idx in focal_chunks:
                 ctx = PairContext(
                     x=x,
                     edge_index=edge_index,
-                    focal_idx=chunk.to(device),
+                    focal_idx=focal_idx,
                     mask_token=self._mask_token,
                     index=self._index,
                     generator=gen,
