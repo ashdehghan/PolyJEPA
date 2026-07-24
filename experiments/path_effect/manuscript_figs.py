@@ -119,9 +119,49 @@ def fig_mechanism():
     save(fig, "fig_mechanism")
 
 
+# ------------------------------------------ fig 5: E3 selection — coverage transfers
+# Gain over the random arm at each label budget. Identity is carried by direct labels,
+# markers and linestyle, not color alone (the green/red pair is CVD-tight).
+def fig_selection():
+    sets = ["cora", "citeseer", "pubmed"]
+    names = ["Cora", "CiteSeer", "PubMed"]
+    arms = [  # key, label, color, linestyle, marker
+        ("probcover_r1", "ProbCover ($q_{25}$)", GAIN, "-", "o"),
+        ("fps_probe", "FPS probe space", INK, "-", "s"),
+        ("ccs_pc1", "CCS on PC1", MUT, "-", "^"),
+        ("fps_sgc", "FPS SGC space", MUT, "--", "v"),
+        ("easy", "easy-first", LOSS, "-", "D"),
+        ("hard", "hard-first", LOSS, "--", "d"),
+    ]
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.9), sharey=True)
+    for ax, s, nm in zip(axes, sets, names):
+        j = json.loads((HERE / f"selection_{s}.json").read_text())["arms"]
+        ks = sorted(int(k) for k in j["random"])
+        for key, label, color, ls, mk in arms:
+            if key not in j:
+                continue
+            g = [j[key][str(k)]["gain_vs_random"] * 100 for k in ks]
+            ax.plot(ks, g, ls, marker=mk, ms=3.5, lw=1.4, color=color,
+                    label=label if s == "cora" else None)
+        ax.axhline(0, color=INK, lw=0.9)
+        ax.set_xscale("log")
+        ax.set_xticks(ks); ax.set_xticklabels([str(k) for k in ks])
+        ax.minorticks_off()
+        ax.set_xlabel("label budget (%)")
+        ax.set_title(nm)
+        if s == "pubmed":
+            ax.text(0.97, 0.04, "fingerprint arms deferred", transform=ax.transAxes,
+                    ha="right", fontsize=6.5, color=MUT, style="italic")
+    axes[0].set_ylabel("gain over random\nselection (points)")
+    fig.legend(frameon=False, fontsize=7, ncol=6, loc="upper center",
+               bbox_to_anchor=(0.5, 1.06), columnspacing=1.2, handletextpad=0.5)
+    save(fig, "fig_selection")
+
+
 if __name__ == "__main__":
     fig_landscape()
     fig_replication()
     fig_gap()
     fig_mechanism()
+    fig_selection()
     print("all figures in", OUT)
