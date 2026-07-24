@@ -106,6 +106,67 @@ def _gis_early(data) -> np.ndarray:
     return _gis_scores(np.stack(mats).mean(axis=0))["gis_early"]
 
 
+def _clnode_difficulty(data, seed: int = 0, epochs: int = 200) -> np.ndarray:
+    """CLNode's multi-perspective difficulty (Wei et al., WSDM 2023), alpha=1.
+
+    Train f1 on the full labeled set; pseudo-label everything (true labels kept
+    on train nodes); D_local = label entropy of the closed neighborhood (Eq. 5-6),
+    D_global = 1 - similarity to the label-class prototype (Eq. 7-10),
+    D = D_local + D_global (Eq. 11 with their fixed alpha=1). Label-aware.
+    """
+    import torch.nn.functional as F
+
+    from experiments.path_effect.train import GCN
+
+    torch.manual_seed(seed)
+    train_idx = data.train_mask.nonzero(as_tuple=True)[0]
+    model = GCN(data.num_features, 16, int(data.y.max()) + 1)
+    opt = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+    for _ in range(epochs):
+        model.train()
+        opt.zero_grad()
+        logits = model(data.x, data.edge_index)
+        F.cross_entropy(logits[train_idx], data.y[train_idx]).backward()
+        opt.step()
+
+    model.eval()
+    with torch.no_grad():
+        h = F.relu(model.conv1(data.x, data.edge_index))       # (N, 16)
+        logits = model.conv2(h, data.edge_index)
+    y_tilde = logits.argmax(dim=1)
+    y_tilde[train_idx] = data.y[train_idx]
+    h, y_tilde = h.numpy(), y_tilde.numpy()
+    n_classes = int(data.y.max()) + 1
+
+    neigh = [[v] for v in range(data.num_nodes)]               # closed neighborhoods
+    for s, d in zip(*data.edge_index.numpy()):
+        neigh[s].append(int(d))
+
+    protos = np.stack([h[y_tilde == c].mean(axis=0) for c in range(n_classes)])
+    D = np.zeros(len(train_idx))
+    for j, u in enumerate(train_idx.tolist()):
+        p = np.bincount(y_tilde[neigh[u]], minlength=n_classes) / len(neigh[u])
+        d_local = -(p[p > 0] * np.log(p[p > 0])).sum()
+        sims = np.exp(h[u] @ protos.T)
+        d_global = 1.0 - sims[y_tilde[u]] / sims.max()
+        D[j] = d_local + d_global
+    return D
+
+
+def _stratified(scores: np.ndarray, y_train: np.ndarray, k: int,
+                hardest: bool = False) -> np.ndarray:
+    """Class-stratified easy/hard: round-robin over classes, picking each class's
+    next easiest (or hardest) node — closes the class-collapse confound."""
+    order = np.argsort(scores) if not hardest else np.argsort(-scores)
+    by_class = {c: [i for i in order if y_train[i] == c] for c in np.unique(y_train)}
+    sel: list[int] = []
+    while len(sel) < k:
+        for c in by_class:
+            if by_class[c] and len(sel) < k:
+                sel.append(by_class[c].pop(0))
+    return np.asarray(sel)
+
+
 # ---------------------------------------------------------------------------
 # Selectors — all return LOCAL indices into the train pool
 # ---------------------------------------------------------------------------
@@ -243,7 +304,8 @@ def _eval(W: np.ndarray) -> tuple[list[float], list[float]]:
 def _build_subsets(n_train: int, budgets: tuple[int, ...], draws: int,
                    R_z: np.ndarray | None, E_train: np.ndarray,
                    E: np.ndarray, train_global: np.ndarray, gis: np.ndarray,
-                   pc_radii: list[float]) -> list[dict]:
+                   pc_radii: list[float], y_train: np.ndarray,
+                   cln: np.ndarray) -> list[dict]:
     subsets = []
     for k_pct in budgets:
         k = max(1, round(k_pct / 100 * n_train))
@@ -262,6 +324,21 @@ def _build_subsets(n_train: int, budgets: tuple[int, ...], draws: int,
                         "sel": np.argsort(gis)[:k]})
         subsets.append({"arm": "hard", "budget": k_pct, "draw": 0,
                         "sel": np.argsort(gis)[-k:]})
+        # Control arms (2026-07-24): close the class-collapse confound and test
+        # whether the easy/hard flip survives CLNode's actual difficulty measure.
+        # random_strat isolates stratification itself from within-class easiness.
+        for draw in range(draws):
+            rng = np.random.default_rng(3000 + draw)
+            subsets.append({"arm": "random_strat", "budget": k_pct, "draw": draw,
+                            "sel": _stratified(rng.random(n_train), y_train, k)})
+        subsets.append({"arm": "easy_strat", "budget": k_pct, "draw": 0,
+                        "sel": _stratified(gis, y_train, k, hardest=False)})
+        subsets.append({"arm": "hard_strat", "budget": k_pct, "draw": 0,
+                        "sel": _stratified(gis, y_train, k, hardest=True)})
+        subsets.append({"arm": "clnode_easy", "budget": k_pct, "draw": 0,
+                        "sel": np.argsort(cln)[:k]})
+        subsets.append({"arm": "clnode_hard", "budget": k_pct, "draw": 0,
+                        "sel": np.argsort(cln)[-k:]})
         for draw, r in enumerate(pc_radii):
             subsets.append({"arm": "probcover", "budget": k_pct, "draw": draw,
                             "sel": _probcover(E, train_global, k, r), "radius": r})
@@ -296,6 +373,8 @@ def process_dataset(ds: str, budgets: tuple[int, ...], draws: int, workers: int,
 
     print("  computing GIS difficulty …")
     gis = _gis_early(data)
+    print("  computing CLNode difficulty …")
+    cln = _clnode_difficulty(data)
 
     r_star, purity = _choose_radius(E, n_classes)
     D_sample = np.sqrt(_sq_dists(E[np.random.default_rng(0).choice(len(E), 200)], E))
@@ -311,7 +390,7 @@ def process_dataset(ds: str, budgets: tuple[int, ...], draws: int, workers: int,
               f"effective rank {e0['train_rows']['effective_rank']:.2f} (train rows)")
 
     subsets = _build_subsets(n_train, budgets, draws, R_z, E_train, E,
-                             train_global, gis, pc_radii)
+                             train_global, gis, pc_radii, y_train, cln)
 
     t0 = time.time()
     pool = mp.Pool(workers, initializer=_init, initargs=(root, ds))
@@ -328,7 +407,8 @@ def process_dataset(ds: str, budgets: tuple[int, ...], draws: int, workers: int,
         s["test"] = np.array(test)
         s["val"] = np.array(val)
 
-    label_aware = {"easy", "hard"}
+    label_aware = {"easy", "hard", "easy_strat", "hard_strat",
+                   "clnode_easy", "clnode_hard"}
     arms_out: dict[str, dict] = {}
     print(f"\n  {'arm':16s} {'k%':>4} {'test':>7} {'vs rand':>9} {'sem':>7} {'wins':>6}")
     for k_pct in budgets:
@@ -348,8 +428,26 @@ def process_dataset(ds: str, budgets: tuple[int, ...], draws: int, workers: int,
         }
         print(f"  {'random':16s} {k_pct:>4} {rand_mat.mean():7.4f} {'--':>9}")
 
+        rs = [s for s in subsets if s["arm"] == "random_strat" and s["budget"] == k_pct]
+        if rs:
+            rs_mat = np.stack([s["test"] for s in rs])
+            d = rs_mat.mean(axis=0) - rand_per_seed
+            arms_out.setdefault("random_strat", {})[str(k_pct)] = {
+                "test_mean": float(rs_mat.mean()),
+                "gain_vs_random": float(d.mean()),
+                "sem": float(rs_mat.mean(axis=1).std(ddof=1) / np.sqrt(len(rs))),
+                "wins_vs_random": int((d > 0).sum()),
+                "per_draw_mean": rs_mat.mean(axis=1).tolist(),
+                "n_selected": len(rs[0]["sel"]),
+                "n_classes_covered": [int(len(np.unique(y_train[s['sel']]))) for s in rs],
+                "selected_global_ids": [train_global[s["sel"]].tolist() for s in rs],
+                "label_aware": True,
+            }
+            print(f"  {'random_strat':16s} {k_pct:>4} {rs_mat.mean():7.4f} "
+                  f"{d.mean():+9.4f} {'':>7} {int((d > 0).sum()):4d}/10")
+
         for s in subsets:
-            if s["arm"] == "random" or s["budget"] != k_pct:
+            if s["arm"] in ("random", "random_strat") or s["budget"] != k_pct:
                 continue
             if s["arm"] == "probcover" and s["draw"] > 0:
                 key = f"probcover_r{s['draw']}"

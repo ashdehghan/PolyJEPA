@@ -127,11 +127,11 @@ def fig_selection():
     names = ["Cora", "CiteSeer", "PubMed"]
     arms = [  # key, label, color, linestyle, marker
         ("probcover_r1", "ProbCover ($q_{25}$)", GAIN, "-", "o"),
+        ("easy_strat", "easy-first (strat.)", GAIN, "--", "D"),
         ("fps_probe", "FPS probe space", INK, "-", "s"),
         ("ccs_pc1", "CCS on PC1", MUT, "-", "^"),
         ("fps_sgc", "FPS SGC space", MUT, "--", "v"),
-        ("easy", "easy-first", LOSS, "-", "D"),
-        ("hard", "hard-first", LOSS, "--", "d"),
+        ("hard_strat", "hard-first (strat.)", LOSS, "--", "d"),
     ]
     fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.9), sharey=True)
     for ax, s, nm in zip(axes, sets, names):
