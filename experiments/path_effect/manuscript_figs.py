@@ -125,7 +125,10 @@ def fig_mechanism():
 def fig_selection():
     sets = ["cora", "citeseer", "pubmed"]
     names = ["Cora", "CiteSeer", "PubMed"]
-    for extra, label in (("photo", "Amazon Photo"), ("computers", "Amazon Computers")):
+    # Computers is excluded from the main figure: its flat-100% baseline (0.368) fails
+    # the pre-registered sanity gate (published GCN ~0.80), so arm contrasts there are
+    # optimization noise. Its table lives in the appendix with that caveat.
+    for extra, label in (("photo", "Amazon Photo"),):
         if (HERE / f"selection_{extra}.json").exists():
             sets.append(extra)
             names.append(label)
@@ -166,6 +169,7 @@ def fig_selection():
         row[0].set_ylabel("gain over random\nselection (points)")
     fig.legend(frameon=False, fontsize=7, ncol=6, loc="upper center",
                bbox_to_anchor=(0.5, 1.06), columnspacing=1.2, handletextpad=0.5)
+    fig.subplots_adjust(hspace=0.55)
     save(fig, "fig_selection")
 
 
