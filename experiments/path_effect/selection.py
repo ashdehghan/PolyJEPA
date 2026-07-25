@@ -59,7 +59,35 @@ _DATA = None
 # Data and feature spaces
 # ---------------------------------------------------------------------------
 
+AMAZON = {"photo": "Photo", "computers": "Computers"}
+SPLIT_SEED = 0
+
+
+def _amazon_masks(data, seed: int = SPLIT_SEED) -> None:
+    """Shchur/CLNode split convention for datasets without a standard split:
+    20 labeled nodes per class train, 500 val, 1000 test (seeded, deterministic)."""
+    rng = np.random.default_rng(seed)
+    y = data.y.numpy()
+    n = data.num_nodes
+    train = []
+    for c in np.unique(y):
+        train.extend(rng.choice(np.where(y == c)[0], size=20, replace=False))
+    rest = np.setdiff1d(np.arange(n), np.array(train))
+    rest = rng.permutation(rest)
+    val, test = rest[:500], rest[500:1500]
+    for name, idx in (("train_mask", train), ("val_mask", val), ("test_mask", test)):
+        mask = torch.zeros(n, dtype=torch.bool)
+        mask[np.asarray(idx)] = True
+        setattr(data, name, mask)
+
+
 def _load_data(ds: str):
+    if ds.lower() in AMAZON:
+        from torch_geometric.datasets import Amazon
+
+        data = Amazon(root=f"/tmp/claude-1000/amazon-{ds.lower()}", name=AMAZON[ds.lower()])[0]
+        _amazon_masks(data)
+        return data
     return Planetoid(root=f"/tmp/claude-1000/{ds.lower()}", name=ds)[0]
 
 
@@ -147,7 +175,8 @@ def _clnode_difficulty(data, seed: int = 0, epochs: int = 200) -> np.ndarray:
     for j, u in enumerate(train_idx.tolist()):
         p = np.bincount(y_tilde[neigh[u]], minlength=n_classes) / len(neigh[u])
         d_local = -(p[p > 0] * np.log(p[p > 0])).sum()
-        sims = np.exp(h[u] @ protos.T)
+        proto_logits = h[u] @ protos.T
+        sims = np.exp(proto_logits - proto_logits.max())   # overflow-safe; ratios unchanged
         d_global = 1.0 - sims[y_tilde[u]] / sims.max()
         D[j] = d_local + d_global
     return D
@@ -286,10 +315,10 @@ def _weights_for(sel_local: np.ndarray, n_train: int) -> np.ndarray:
     return W
 
 
-def _init(root: str, name: str) -> None:
+def _init(ds: str) -> None:
     global _DATA
     torch.set_num_threads(1)
-    _DATA = Planetoid(root=root, name=name)[0]
+    _DATA = _load_data(ds)
 
 
 def _eval(W: np.ndarray) -> tuple[list[float], list[float]]:
@@ -347,7 +376,6 @@ def _build_subsets(n_train: int, budgets: tuple[int, ...], draws: int,
 
 def process_dataset(ds: str, budgets: tuple[int, ...], draws: int, workers: int,
                     embeddings_npz: str | None, probcover_sweep: bool) -> None:
-    root = f"/tmp/claude-1000/{ds.lower()}"
     data = _load_data(ds)
     train_global = data.train_mask.nonzero(as_tuple=True)[0].numpy()
     n_train = len(train_global)
@@ -393,7 +421,7 @@ def process_dataset(ds: str, budgets: tuple[int, ...], draws: int, workers: int,
                              train_global, gis, pc_radii, y_train, cln)
 
     t0 = time.time()
-    pool = mp.Pool(workers, initializer=_init, initargs=(root, ds))
+    pool = mp.Pool(workers, initializer=_init, initargs=(ds,))
     Ws = [_weights_for(s["sel"], n_train) for s in subsets] + [np.ones((T, n_train))]
     res = pool.map(_eval, Ws, chunksize=1)
     pool.close()

@@ -125,6 +125,10 @@ def fig_mechanism():
 def fig_selection():
     sets = ["cora", "citeseer", "pubmed"]
     names = ["Cora", "CiteSeer", "PubMed"]
+    for extra, label in (("photo", "Amazon Photo"), ("computers", "Amazon Computers")):
+        if (HERE / f"selection_{extra}.json").exists():
+            sets.append(extra)
+            names.append(label)
     arms = [  # key, label, color, linestyle, marker
         ("probcover_r1", "ProbCover ($q_{25}$)", GAIN, "-", "o"),
         ("easy_strat", "easy-first (strat.)", GAIN, "--", "D"),
@@ -133,8 +137,14 @@ def fig_selection():
         ("fps_sgc", "FPS SGC space", MUT, "--", "v"),
         ("hard_strat", "hard-first (strat.)", LOSS, "--", "d"),
     ]
-    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.9), sharey=True)
-    for ax, s, nm in zip(axes, sets, names):
+    ncols = 3
+    nrows = (len(sets) + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(7.2, 2.9 * nrows),
+                             sharey=True, squeeze=False)
+    flat_axes = axes.ravel()
+    for ax in flat_axes[len(sets):]:
+        ax.set_visible(False)
+    for ax, s, nm in zip(flat_axes, sets, names):
         j = json.loads((HERE / f"selection_{s}.json").read_text())["arms"]
         ks = sorted(int(k) for k in j["random"])
         for key, label, color, ls, mk in arms:
@@ -152,7 +162,8 @@ def fig_selection():
         if s == "pubmed":
             ax.text(0.97, 0.04, "fingerprint arms deferred", transform=ax.transAxes,
                     ha="right", fontsize=6.5, color=MUT, style="italic")
-    axes[0].set_ylabel("gain over random\nselection (points)")
+    for row in axes:
+        row[0].set_ylabel("gain over random\nselection (points)")
     fig.legend(frameon=False, fontsize=7, ncol=6, loc="upper center",
                bbox_to_anchor=(0.5, 1.06), columnspacing=1.2, handletextpad=0.5)
     save(fig, "fig_selection")
