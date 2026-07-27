@@ -37,6 +37,11 @@ governed by `claim_audit.md`.
     $4.5$ accuracy points," "up to $22$ points over random selection") beats a per-dataset
     list ("$4.0$, $1.6$, and $4.5$") that the reader cannot yet attach to anything.
     Dataset-by-dataset numbers live in the results, where the datasets have names.
+12b. **Tense scheme.** Cited work: past tense for reporting verbs ("Wu et al. compared,"
+    "Frankle et al. showed"); a content clause after a past reporting verb may stay present
+    when it states a general truth ("showed that sampling noise biases the solution"). Our
+    own work in this paper: present tense ("we run," "we find," "Table 2 shows"). Mathematics,
+    definitions, and general facts: present tense.
 12. **Strong-claim discipline.** For every definitive, universal, or evaluative statement:
     (a) if it is verifiably true, attach the evidence in the same breath (a citation or a
     number); (b) if it is our judgment, mark it as ours; (c) if it cannot be defended at full
