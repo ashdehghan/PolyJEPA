@@ -32,6 +32,11 @@ governed by `claim_audit.md`.
     sentence contentless, the sentence is wrong. Explain what happens in plain words first;
     name the term only if the name is needed later. The reader is a researcher, not a
     subfield insider: convey the idea and the intuition, never make them decode.
+12a. **Numbers need context (abstract and introduction).** A number appears only where the
+    sentence itself gives it meaning. One summarizing magnitude with a clear referent ("up to
+    $4.5$ accuracy points," "up to $22$ points over random selection") beats a per-dataset
+    list ("$4.0$, $1.6$, and $4.5$") that the reader cannot yet attach to anything.
+    Dataset-by-dataset numbers live in the results, where the datasets have names.
 12. **Strong-claim discipline.** For every definitive, universal, or evaluative statement:
     (a) if it is verifiably true, attach the evidence in the same breath (a citation or a
     number); (b) if it is our judgment, mark it as ours; (c) if it cannot be defended at full
