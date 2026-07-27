@@ -173,6 +173,104 @@ def fig_selection():
     save(fig, "fig_selection")
 
 
+# ------------------------------- fig 6: JEPA architecture -------------------------------
+def fig_jepa():
+    fig, ax = plt.subplots(figsize=(7.2, 3.0))
+    ax.set_xlim(0, 11); ax.set_ylim(-0.4, 6); ax.axis("off")
+
+    def box(x, y, w, h, text, fc="#f2f4f5", ec=INK, fs=8.5, bold=False):
+        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, lw=1.1))
+        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fs,
+                fontweight="bold" if bold else "normal")
+
+    def arrow(x0, y0, x1, y1, style="-", color=INK, text=None, ty=0.25):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="->", color=color, lw=1.2, ls=style))
+        if text:
+            ax.text((x0 + x1) / 2, (y0 + y1) / 2 + ty, text, ha="center", fontsize=7.5,
+                    color=color)
+
+    box(0.2, 2.3, 1.5, 1.4, "graph\n$(X, E)$", fc="white", bold=True)
+    # context branch (top)
+    box(2.4, 4.1, 1.9, 1.2, "context view\n(targets masked)")
+    box(4.9, 4.1, 1.6, 1.2, "encoder\n$f_\\theta$")
+    box(7.0, 4.1, 1.5, 1.2, "predictor\n$g_\\phi$")
+    # target branch (bottom)
+    box(2.4, 0.6, 1.9, 1.2, "target view\n(clean graph)")
+    box(4.9, 0.6, 1.6, 1.2, "target encoder\n$f_{\\bar\\theta}$")
+    box(7.0, 0.6, 1.5, 1.2, "mean-pool\ntargets")
+    box(8.9, 2.3, 1.0, 1.4, "$r_i$", fc="#eae6f7", bold=True)
+
+    arrow(1.7, 3.4, 2.4, 4.5); arrow(1.7, 2.6, 2.4, 1.4)
+    arrow(4.3, 4.7, 4.9, 4.7); arrow(6.5, 4.7, 7.0, 4.7)
+    ax.text(6.75, 5.55, "read at focal $i$", ha="center", fontsize=7.5, color=INK)
+    arrow(4.3, 1.2, 4.9, 1.2); arrow(6.5, 1.2, 7.0, 1.2)
+    arrow(8.5, 4.5, 9.1, 3.7)
+    arrow(8.5, 1.3, 9.1, 2.3)
+    # EMA + stop-grad annotations
+    arrow(5.7, 4.1, 5.7, 1.8, style="--", color=MUT)
+    ax.text(5.95, 2.9, "EMA copy\n(no gradients)", fontsize=7.5, color=MUT)
+    ax.text(9.4, -0.15, "$r_i$: squared distance between\nprediction and pooled target",
+            ha="center", fontsize=7.5, color=INK)
+    ax.set_title("One probe evaluation: the pair design chooses the views and the targets;"
+                 " everything else is fixed", fontsize=9)
+    save(fig, "fig_jepa")
+
+
+# ------------------------------- fig 7: the six probes -------------------------------
+def fig_probes():
+    pos = {0: (0.0, 0.5), 1: (0.9, 1.2), 2: (0.9, -0.2), 3: (1.0, 0.5),
+           4: (1.9, 1.3), 5: (1.9, -0.3), 6: (3.0, 0.5), 7: (3.8, 1.1),
+           8: (3.8, -0.1), 9: (4.6, 0.9), 10: (4.9, 0.2), 11: (4.3, -0.6)}
+    edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 4), (2, 5), (3, 6), (4, 5),
+             (6, 7), (6, 8), (7, 9), (8, 9), (9, 10), (8, 11), (10, 11)]
+    panels = [
+        ("A: recover the focal node", {0}, "the node itself, from its surroundings"),
+        ("B: pooled 1-hop neighborhood", {1, 2, 3}, "the average of all neighbors"),
+        ("C: one sampled neighbor", {2}, "a single neighbor, drawn per pass"),
+        ("D: pooled two-hop ring", {4, 5, 6}, "the average of nodes at distance 2"),
+        ("E: across two augmentations", set(), "the node itself, across two noisy views"),
+        ("F: community sibling", {5}, "a same-community non-neighbor"),
+    ]
+    fig, axes = plt.subplots(2, 3, figsize=(9.6, 5.0))
+    for ax, (title, targets, sub) in zip(axes.ravel(), panels):
+        dashed = {(1, 2), (2, 5), (8, 9)} if title.startswith("E") else set()
+        for u, v in edges:
+            ls = "--" if (u, v) in dashed else "-"
+            col = LOSS if (u, v) in dashed else MUT
+            ax.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]], ls, color=col,
+                    lw=1.1, zorder=1, alpha=0.45 if ls == "--" else 0.9)
+        if title.startswith("F"):
+            for cx, cy, w, h in [(1.1, 0.5, 3.1, 2.8), (3.9, 0.2, 3.0, 2.6)]:
+                ax.add_patch(plt.matplotlib.patches.Ellipse(
+                    (cx, cy), w, h, fill=False, ls=":", ec=INK, lw=0.9, alpha=0.5))
+        for n, (x, y) in pos.items():
+            if n == 0:
+                fc, ec_, lw = "white", INK, 2.2
+            elif n in targets:
+                fc, ec_, lw = GAIN, LOSS, 1.6
+            else:
+                fc, ec_, lw = "#d6dbde", MUT, 0.8
+            ax.scatter([x], [y], s=210, facecolor=fc, edgecolor=ec_, linewidth=lw,
+                       zorder=3, linestyle="--" if n in targets else "-")
+        ax.set_title(title, fontsize=9.5)
+        ax.text(2.45, -1.35, sub, ha="center", fontsize=8, color=INK, style="italic")
+        ax.set_xlim(-0.6, 5.5); ax.set_ylim(-1.7, 1.9)
+        ax.axis("off")
+    handles = [
+        plt.Line2D([], [], marker="o", ls="", mfc="white", mec=INK, mew=2.0, ms=10,
+                   label="focal node $i$ (prediction read here)"),
+        plt.Line2D([], [], marker="o", ls="", mfc=GAIN, mec=LOSS, mew=1.5, ms=10,
+                   label="target (masked in the context view)"),
+        plt.Line2D([], [], marker="o", ls="", mfc="#d6dbde", mec=MUT, ms=10,
+                   label="visible context"),
+        plt.Line2D([], [], ls="--", color=LOSS, label="dropped edge (E only)"),
+    ]
+    fig.legend(handles=handles, frameon=False, fontsize=8, ncol=4, loc="upper center",
+               bbox_to_anchor=(0.5, 1.05))
+    save(fig, "fig_probes")
+
+
 if __name__ == "__main__":
     fig_landscape()
     fig_replication()
