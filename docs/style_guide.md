@@ -13,9 +13,14 @@ governed by `claim_audit.md`.
    sentence. If it wraps an aside, promote the aside to its own sentence or cut it;
    parentheses only for citations and short genuine asides. If it is a dramatic pause,
    delete the pause.
-3. **Rhythm: short for pivots and claims, long for evidence.** Pivot sentences land short:
-   "We argue these results are consistent." "Here the outcome is different." Evidence and
-   mechanism sentences may run long and should often end on the numbers.
+3. **Rhythm: short for pivots and claims, long for evidence — and never staccato.** Pivot
+   sentences land short: "We argue these results are consistent." Evidence and mechanism
+   sentences may run long and should often end on the numbers. The short-sentence license is
+   for pivots ONLY: an explanation must flow as connected prose with explicit logical links
+   (because, so, which means, however). Chopping an explanation into fragments ("They fixed
+   pacing and randomized order. But a growing subset means...") delivers no information per
+   sentence and is banned. When explaining, prefer one full sentence that carries the whole
+   step of reasoning over three fragments that each carry a shard of it.
 4. **Active first person.** "We find," "we could not." Never "it can be observed that."
 5. **No intensity decoration.** Delete: cleanly, decisively, strikingly, remarkably,
    spectacularly, airtight, enormous (when rhetorical), "most dangerously," "sits
@@ -37,6 +42,13 @@ governed by `claim_audit.md`.
     $4.5$ accuracy points," "up to $22$ points over random selection") beats a per-dataset
     list ("$4.0$, $1.6$, and $4.5$") that the reader cannot yet attach to anything.
     Dataset-by-dataset numbers live in the results, where the datasets have names.
+12c. **No aphoristic compression.** Do not pack an idea into a clever short construction
+    that the reader must unpack. Banned patterns: question words as bare predicates
+    ("Everything the marginal discards is *when*"); metadiscourse flourishes ("Two notes
+    ground this in practice," "Here is what X buys," "worth stating because"). Write the
+    full sentence with an explicit subject, verb, and object: "The second part is the
+    information the marginal throws away: the timing." A scientific manuscript is not
+    poetry; short sentences are for clarity, never for compression.
 12b. **Tense scheme.** Cited work: past tense for reporting verbs ("Wu et al. compared,"
     "Frankle et al. showed"); a content clause after a past reporting verb may stay present
     when it states a general truth ("showed that sampling noise biases the solution"). Our
@@ -62,6 +74,18 @@ governed by `claim_audit.md`.
 | $R$ requires no labels --- it is a lens on the data | $R$ requires no labels: it is a lens on the data. |
 | (Rule 11) prove self-paced learning is majorization--minimization on an implicit objective with a non-convex robust regularizer: a robust loss, not a curriculum | Self-paced learning looks like a curriculum: the model trains on its easiest examples first and adds harder ones as it improves. Meng et al. proved this procedure is exactly equivalent to ordinary training on a fixed objective in which each example's loss is capped, so that hard examples simply count less. Whatever it gains, it gains from suppressing hard examples, not from order. |
 | (Rule 12) a large applied literature and a thin evidential one | The applied literature is large [survey]. Direct evidence that the ordering itself helps is harder to find, and the most systematic test of that question found none [Wu]. |
+
+13. **Headings are descriptive noun phrases.** Section and paragraph titles name their
+    content in standard scientific form ("Related work," "Directional consistency,"
+    "Cross-domain evaluation"). Never editorial one-liners ("Related work, and what is
+    actually ours"), never claims-as-titles ("The probe bank cannot predict the compass"),
+    never staging ("The negative results, first").
+14. **Write clearly, in natural connected prose. Full stop.** One complete thought per
+    sentence, stated plainly, joined with explicit logic (because, so, however) when the
+    reasoning continues. Short sentences are fine when they are clear and complete. Long
+    sentences are fine when the thought needs them. Never shorten to be punchy, never
+    lengthen by chaining clauses, never compress an idea into a construction the reader
+    must decode. The final check is always a human read of the full text, not a script.
 
 ## Exceptions
 
