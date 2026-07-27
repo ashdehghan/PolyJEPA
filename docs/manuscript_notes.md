@@ -39,3 +39,13 @@ Recommendation pending abstract: 1 or 2.
 - Frame LeDoux as concurrent work, prominently, §1 + §2: mechanism (their gradient-level
   entanglement) complements our design-space formalism (schedule-level measure).
 - Use their p.26 open question as the bridge INTO our predictability program.
+
+## Three-knobs generalization (2026-07-26, from Ash's question)
+
+A schedule W has three knobs: column profile c (selection/reweighting), row profile r
+(pacing; a decaying r = an LR schedule for plain SGD), and the coupling = the path = the
+schedule's copula. Feasible set = transportation polytope U(r,c); zero-path baseline = outer
+product r c^T / M; doubly-stochastic = uniform special case. Now in manuscript: section 2
+remark (eq:transport, eq:indep) + intuition appendix (app:threeknobs) + E4 spec in working
+notes. E4 (row-profile isolation) is the missing experiment — see tasks.json
+future-e4-row-profile.
