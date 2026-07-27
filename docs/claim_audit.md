@@ -13,7 +13,7 @@ Last updated: 2026-07-25 (session: manuscript rewrite, phase 1–2).
 | 3 | Arrival-compass instrument (ridge from arrival profiles → val acc; directional, self-calibrating) | §6 (Results I) | replicate.py, 3 datasets, fwd-vs-rev +4.0/+1.6/+4.5 | Nothing similar known; LeDoux's orderings are hand-designed, not searched/fit | **ours** (PENDING tier-1 sweep) |
 | 4 | β is gradient-dynamic and dataset-local; even direct dynamic measurement (GIS) fails to transfer | §6 | probe_compass + gis.py sign flip | Dataset cartography/GraNd measure training dynamics but for *selection*, not timing; no transferability claims to contest | **ours** (PENDING) |
 | 5 | Timing null is airtight: β, |β|, sign(β) are not functions of probe/hand-crafted/SGC space (nonparametric, permutation-tested) | §6 anatomy | probe_anatomy.py: 18 LOO-kNN tests ≤ null | none known | **ours** (PENDING) |
-| 6 | Low-budget selection: representativeness transfers (ProbCover q25 + stratified easy-first) | §7 | selection.py 3 graphs + Amazon (running) | **Hacohen 2022** phase transition; **Yehuda 2022** coverage/coreset duality; read end-to-end 2026-07-24 | **confirmation** — framed as such in text; the *transductive label-scheduling* setting + the δ*-rule failure on SGC features are ours |
+| 6 | Low-budget selection: representativeness transfers (ProbCover q25 + stratified easy-first) | §7 | selection.py 3 graphs + Amazon Photo (Computers excluded: fails flat-baseline sanity gate, 0.368 vs ~0.80) | **Hacohen 2022** phase transition; **Yehuda 2022** coverage/coreset duality; read end-to-end 2026-07-24 | **confirmation, REFINED 2026-07-25 by the domain jump**: ProbCover transfers to Photo at every radius/budget (r* is BEST there, +27.4 at 5%, 10/10 — the purity rule works on co-purchase features where it failed on citation SGC); stratified easy-first does NOT transfer cleanly (Photo gain ≈ the stratification component; CLNode difficulty catastrophic −23 to −45). Sharpened principle for the paper: label-free representative COVERAGE transfers across domains; DIFFICULTY signals of every flavor are domain-local |
 | 7 | Raw easy/hard flip is a class-coverage artifact; stratified easy-first transfers; consistent with Sorscher keep-easy-when-scarce | §7 | run2/run3 controls, random_strat decomposition | Sorscher 2022 (PENDING end-to-end read); CLNode read 2026-07-24 (no such control in their paper) | **ours** (the control + decomposition), consistent-with Sorscher. PENDING |
 | 8 | Probe fingerprint holds real but non-transferable selection signal (CiteSeer wins, Cora catastrophic) | §7 | selection.py | AutoSSL/RCL scalarize residuals; nobody tests residual-space coverage for selection (PENDING reads) | **ours** (PENDING jin2022autossl, zhang2023rcl reads) |
 | 9 | "Curriculum searched one dimension" — difficulty scalar admits only sort+sweep schedules; curves in probe space generalize | §3/§4 | formalism | Wu 2021 (empirical), Dataset Cartography (2-D map, no schedules) | **ours** as formal statement (PENDING) |
@@ -33,6 +33,21 @@ Last updated: 2026-07-25 (session: manuscript rewrite, phase 1–2).
 | sorscher2022beyond | ✅ read 2026-07-25 (agent) | Prototype-pruning characterization ACCURATE (k-means in SWaV space, cosine to centroid, label-free scalar). Keep-easy-when-scarce: their theory (perceptron) + CIFAR-10/EL2N empirics; NOT demonstrated with the prototype metric nor on ImageNet — pairing "scarce→easy" with the SSL metric is OUR extrapolation, say so. Operative variable = data per parameter (α_tot) jointly with kept fraction, not absolute size. Image-domain only; class balancing essential; example interactions unmodeled — our transductive analogy is beyond their evidence, state as such |
 | lu2022grab / rajput2022permutation | ✅ read 2026-07-25 (agent) | Marginal-equalization + herding-not-difficulty + Rajput's exponential-to-nonexistent range all ACCURATE. **QUALIFIER REQUIRED: GraB explicitly claims + shows generalization gains** (val acc MNIST ~92–93 vs ~89, WikiText-2 val ppl ~200 vs ~210; "lets the model generalize better," p. 2) — our "measures convergence rate, not generalization" must be scoped to their *guarantees* |
 | jin2022autossl / zhang2023rcl | ✅ read 2026-07-25 (agent) | **AutoSSL sentence WRONG on mechanism**: they learn per-TASK scalar loss weights (Eq. 1) searched via pseudo-homophily (CMA-ES / meta-gradient), not per-node weights, no gating network. The negative half survives (no residual-as-coordinates, schedules nothing). RCL characterization ACCURATE (per-edge reconstruction residual, easiest edges first, paced by age λ); nuance: their "self-supervised" probe is trained jointly with the supervised loss |
+
+## Strong-claim ledger (rule 12 decisions, abstract + §1–2, 2026-07-25)
+
+| Claim | Decision |
+|---|---|
+| "large applied literature, thin evidential one" | REPLACED with facts+cites: applied literature is large (soviany survey); most systematic test of ordering found no benefit (wu) |
+| "Order was never isolated." | SCOPED: "None of these designs isolates order." (about the designs just described) |
+| "null hypothesis the curriculum literature never stated" | HEDGED: "to our knowledge ... has not stated" |
+| "the field searched one axis" (thesis) | SCOPED: "the curricula that have been tried all search along a single axis" |
+| Abstract "the two effects have never been measured separately" | DELETED the clause; LeDoux sentence in §2 covers the near-exception |
+| Abstract "Exploiting timing therefore requires..." | SCOPED: "In our experiments, exploiting timing required a new search on every dataset." |
+| Abstract "rules ... are specific to each dataset" | SCOPED: "the rules we found are specific to each dataset" |
+| "equalizes marginals exactly by construction" (perm-SGD) | KEPT: mathematical fact |
+| Frankle "barriers are enormous/large" | REPLACED with the fact: "interpolated error rises to near random guessing ... except LeNet" |
+| Saglietti "same verdict" | KEPT with the consolidation-loss parenthetical scoping it |
 
 ## Text-fix queue (apply in the restructure pass)
 

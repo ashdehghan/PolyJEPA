@@ -28,6 +28,16 @@ governed by `claim_audit.md`.
 9. **Emphasis is rationed.** `\emph` for definitions and true contrast only. Bold signposts
    sparingly (the abstract's "The path:" / "The marginal:" pattern).
 10. **No rhetorical questions in prose.**
+11. **No term of art may carry the argument.** If removing a technical term leaves the
+    sentence contentless, the sentence is wrong. Explain what happens in plain words first;
+    name the term only if the name is needed later. The reader is a researcher, not a
+    subfield insider: convey the idea and the intuition, never make them decode.
+12. **Strong-claim discipline.** For every definitive, universal, or evaluative statement:
+    (a) if it is verifiably true, attach the evidence in the same breath (a citation or a
+    number); (b) if it is our judgment, mark it as ours; (c) if it cannot be defended at full
+    strength, scope it ("within the curriculum literature," "in our experiments," "to our
+    knowledge") or delete it. State the facts and let them convict; do not pronounce
+    verdicts.
 
 ## Examples (before → after, from our own draft)
 
@@ -40,6 +50,8 @@ governed by `claim_audit.md`.
 | Most dangerously, CCS already shows that covering a score range beats taking its top-$k$ | CCS already shows that covering a score range beats taking its top-$k$ at high pruning rates. This is the closest existing result to ours. |
 | the compass works --- but it costs thousands of runs | The compass works, but it costs thousands of runs. |
 | $R$ requires no labels --- it is a lens on the data | $R$ requires no labels: it is a lens on the data. |
+| (Rule 11) prove self-paced learning is majorization--minimization on an implicit objective with a non-convex robust regularizer: a robust loss, not a curriculum | Self-paced learning looks like a curriculum: the model trains on its easiest examples first and adds harder ones as it improves. Meng et al. proved this procedure is exactly equivalent to ordinary training on a fixed objective in which each example's loss is capped, so that hard examples simply count less. Whatever it gains, it gains from suppressing hard examples, not from order. |
+| (Rule 12) a large applied literature and a thin evidential one | The applied literature is large [survey]. Direct evidence that the ordering itself helps is harder to find, and the most systematic test of that question found none [Wu]. |
 
 ## Exceptions
 
