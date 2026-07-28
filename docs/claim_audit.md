@@ -34,6 +34,17 @@ Last updated: 2026-07-25 (session: manuscript rewrite, phase 1–2).
 | lu2022grab / rajput2022permutation | ✅ read 2026-07-25 (agent) | Marginal-equalization + herding-not-difficulty + Rajput's exponential-to-nonexistent range all ACCURATE. **QUALIFIER REQUIRED: GraB explicitly claims + shows generalization gains** (val acc MNIST ~92–93 vs ~89, WikiText-2 val ppl ~200 vs ~210; "lets the model generalize better," p. 2) — our "measures convergence rate, not generalization" must be scoped to their *guarantees* |
 | jin2022autossl / zhang2023rcl | ✅ read 2026-07-25 (agent) | **AutoSSL sentence WRONG on mechanism**: they learn per-TASK scalar loss weights (Eq. 1) searched via pseudo-homophily (CMA-ES / meta-gradient), not per-node weights, no gating network. The negative half survives (no residual-as-coordinates, schedules nothing). RCL characterization ACCURATE (per-edge reconstruction residual, easiest edges first, paced by age λ); nuance: their "self-supervised" probe is trained jointly with the supervised loss |
 
+## Learned-schedules appendix (E5) — reading round 2026-07-28
+
+| # | Claim | Verdict |
+|---|---|---|
+| 11 | Learning the coupling (time-indexed T×N weights, both marginals pinned via differentiable Sinkhorn, full-run unroll) is new | **ours-narrowed, verified by 6 full reads**: Franceschi 2017 §5.1 (data hyper-cleaning) is REAL precedent — gradient-learned per-example weights with box + ℓ1 budget through full unroll, but constant in time (= learned marginal, knob 1). Maclaurin 2015 learned per-iteration LR schedules (= knob 2) + training-set pixels; never example×time weights. Ren/Shu = reactive per-step meta-gradient weights, batch-simplex only. Graves = closed-loop bandit over tasks. Tay = Sinkhorn inside attention on activations. Knob 3 (the coupling) unlearned in all six. Appendix states this map explicitly |
+| 12 | E5 pre-registration | Locked before run: primary = held-out gain > compass +1.9 (Cora); secondary = > best val-selected random schedule; else reported as timing-channel ceiling |
+
+Reading log additions (all ✅ read 2026-07-28, notes in library): ren2018reweight,
+shu2019metaweightnet, graves2017automated, maclaurin2015hypergrad, franceschi2017forward,
+tay2020sinkhornattn.
+
 ## Strong-claim ledger (rule 12 decisions, abstract + §1–2, 2026-07-25)
 
 | Claim | Decision |
