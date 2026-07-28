@@ -314,3 +314,78 @@ def fig_learned():
     ax[1].set_title("(b) outer-loop trajectory")
     ax[1].legend(frameon=False, fontsize=7)
     save(fig, "fig_learned")
+
+
+# --------------------------------------------- fig 10/11: schedule matrix + compass pipeline
+# Appendix visuals: the T x N schedule as a picture, and how the compass becomes a schedule.
+def fig_schedule_matrix():
+    from experiments.path_effect.schedules import _spotlight, sinkhorn
+    T_, N_ = 12, 8
+    order = np.linspace(0.0, 1.0, N_)
+    flat = np.ones((T_, N_))
+    fwd = sinkhorn(_spotlight(order, T_, 0.18))
+    rev = fwd[::-1].copy()
+
+    def arrivals(W):
+        tt = np.linspace(0.0, 1.0, T_)[:, None]
+        return (W * tt).sum(axis=0) / W.sum(axis=0)
+
+    fig, ax = plt.subplots(1, 3, figsize=(7.2, 2.7), sharey=True)
+    vmax = fwd.max()
+    for a, W, title in zip(ax, [flat, fwd, rev],
+                           ["(a) flat (i.i.d. training)", "(b) a timed schedule",
+                            "(c) its time reverse"]):
+        a.imshow(W, aspect="auto", origin="lower", cmap="Greys",
+                 vmin=0, vmax=vmax, interpolation="nearest")
+        a.scatter(np.arange(N_), arrivals(W) * (T_ - 1), s=22, color=GAIN,
+                  zorder=3, label=r"arrival time $\tau_i$")
+        a.set_title(title, fontsize=9)
+        a.set_xlabel("training node $i$")
+        a.set_xticks(range(0, N_, 2))
+    ax[0].set_ylabel("epoch $t$")
+    ax[0].legend(frameon=False, fontsize=7, loc="upper left")
+    save(fig, "fig_schedule_matrix")
+
+
+def fig_compass_pipeline():
+    fig, ax = plt.subplots(figsize=(7.2, 3.1))
+    ax.set_xlim(0, 11); ax.set_ylim(-0.3, 6); ax.axis("off")
+
+    def box(x, y, w, h, text, fc="#f2f4f5", ec=INK, fs=8, bold=False):
+        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, lw=1.1))
+        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fs,
+                fontweight="bold" if bold else "normal")
+
+    def arrow(x0, y0, x1, y1, color=INK, text=None, ty=0.25, fs=7):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="->", color=color, lw=1.2))
+        if text:
+            ax.text((x0 + x1) / 2, (y0 + y1) / 2 + ty, text, ha="center",
+                    fontsize=fs, color=color)
+
+    # fitting row (top)
+    box(0.2, 4.2, 2.3, 1.4, "2,000 random\nschedules $W$\n(Sinkhorn-projected)", fc="white")
+    box(3.3, 4.2, 2.3, 1.4, "arrival profiles\n$\\tau \\in \\mathbb{R}^{N}$\n(one time per node)")
+    box(6.4, 4.2, 1.9, 1.4, "ridge\nregression")
+    box(9.1, 4.2, 1.7, 1.4, "compass\n$\\beta \\in \\mathbb{R}^{N}$", fc="#eae6f7", bold=True)
+    arrow(2.5, 4.9, 3.3, 4.9)
+    arrow(5.6, 4.9, 6.4, 4.9)
+    arrow(8.3, 4.9, 9.1, 4.9)
+    ax.text(5.6, 3.35, "validation accuracy\nper schedule\n(2 search seeds)",
+            ha="center", fontsize=7, color=MUT)
+    arrow(6.1, 3.75, 6.9, 4.15, color=MUT)
+
+    # building row (bottom)
+    box(0.2, 0.6, 2.0, 1.4, "rank $\\beta$\nin $[0,1]$\n(ordering only)", fs=7.5)
+    box(2.8, 0.6, 2.4, 1.4, "Gaussian spotlight\nsweeps the ordering", fs=7.5)
+    box(5.8, 0.6, 1.8, 1.4, "flatten last\n30 epochs", fs=7.5)
+    box(8.2, 0.6, 2.6, 1.4, "Sinkhorn $\\to$ compass\nschedule (scored on\n10 unseen seeds)",
+        fc="#e7f0ec", fs=7.5, bold=True)
+    arrow(9.95, 4.2, 9.95, 2.7)
+    arrow(9.95, 2.7, 1.3, 2.05)
+    arrow(2.2, 1.3, 2.8, 1.3)
+    arrow(5.2, 1.3, 5.8, 1.3)
+    arrow(7.6, 1.3, 8.2, 1.3)
+    ax.set_title("The compass: fit on validation arrivals (top), then rebuilt into a schedule "
+                 "(bottom)", fontsize=9)
+    save(fig, "fig_compass_pipeline")
