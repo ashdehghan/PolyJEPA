@@ -132,3 +132,16 @@ for the expanded related work).
   arrival windows tile the run.
 - **Claim discipline**: appendix reports one dataset, no transfer claim, winner's-curse
   gap stated in the same breath as the headline.
+
+## E0 seed stability (2026-07-28)
+
+- **Gap found**: S3 claimed "we test for it" but no stability run existed. Fixed by running it.
+- **Run**: `seed_stability.py`, Cora, fingerprints at seeds 1 and 2 vs cached seed 0
+  (200 epochs/probe, ~7.2h). Artifact: `seed_stability_cora.json`.
+- **Result**: per-probe Spearman across seed pairs — A .92-.94, B .88-.90, D .92-.93 (stable);
+  C .69-.78, E .63-.74 (moderate); F .26-.35 (near noise). Mean 0.75. 10-NN overlap in the
+  6-D z-scored space 0.24-0.27 vs chance 0.072.
+- **Verdict**: gate holds in the weak sense. Geometry is mostly graph, not accident, but seed
+  variance is real and probe F's column is close to noise. Anatomy negatives don't hinge on it
+  (surface-stat space has zero seed variance and fails identically); the caveat is attenuation
+  of probe-column signal. S3 text now states the measured result; E0 bullet annotated.
