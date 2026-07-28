@@ -1,0 +1,185 @@
+{
+ "dataset": "Cora",
+ "T": 60,
+ "n_train": 140,
+ "row_budget_max_abs_dev": 0.3631128871347755,
+ "col_budget_max_abs_dev": 1.2114644050598145e-05,
+ "A1_staircase": {
+  "learned": {
+   "arrival_min": 2.548906172232442,
+   "arrival_max": 58.60231969764821,
+   "arrival_span": 56.05341352541577,
+   "arrival_vs_uniform_grid_r": 0.9923729049232513,
+   "max_interarrival_gap": 2.437013227289114,
+   "iqr_median": 6.0,
+   "iqr_q25": 3.0,
+   "iqr_q75": 15.25,
+   "effective_support_median": 18.023206956849567,
+   "mass_within_3_epochs_median": 0.3249472081636837
+  },
+  "flat_reference": {
+   "arrival_min": 29.5,
+   "arrival_max": 29.5,
+   "arrival_span": 0.0,
+   "arrival_vs_uniform_grid_r": NaN,
+   "max_interarrival_gap": 0.0,
+   "iqr_median": 29.0,
+   "iqr_q25": 29.0,
+   "iqr_q75": 29.0,
+   "effective_support_median": 60.00000000000009,
+   "mass_within_3_epochs_median": 0.09999999999999999
+  },
+  "top20_random_reference": {
+   "arrival_min": 13.568889081189983,
+   "arrival_max": 44.597478580461086,
+   "arrival_span": 31.318846625540793,
+   "arrival_vs_uniform_grid_r": 0.9703579105325983,
+   "max_interarrival_gap": 2.793718386969502,
+   "iqr_median": 26.25,
+   "iqr_q25": 19.5,
+   "iqr_q75": 32.625,
+   "effective_support_median": 17.93487712949123,
+   "mass_within_3_epochs_median": 0.07619728506776452
+  }
+ },
+ "A2_z_vs_w": {
+  "arrival_pearson": 0.9881729151718472,
+  "cell_pearson_expz_w": 0.6879650810639335,
+  "cell_spearman_expz_w": 0.8121099337318393
+ },
+ "A3_restarts": {
+  "note": "only the winning restart's Z was saved; schedule-level agreement between restarts is not measurable from the artifacts",
+  "trajectories": [
+   {
+    "restart": 0,
+    "start_val_acc": 0.7840000092983246,
+    "best_val_acc": 0.8610000014305115,
+    "final_val_acc": 0.8589999973773956,
+    "first_step_above_start": 1
+   },
+   {
+    "restart": 1,
+    "start_val_acc": 0.7870000004768372,
+    "best_val_acc": 0.8689999878406525,
+    "final_val_acc": 0.8689999878406525,
+    "first_step_above_start": 1
+   }
+  ]
+ },
+ "A4_predictors": {
+  "n_tests": 12,
+  "bonferroni_alpha": 0.004166666666666667,
+  "two_sigma_null_band_r": 0.1690308509457033,
+  "tests": [
+   {
+    "predictor": "degree",
+    "n": 140,
+    "spearman": -0.010502291168119378,
+    "perm_p": 0.8981
+   },
+   {
+    "predictor": "clustering",
+    "n": 140,
+    "spearman": 0.03773876981785075,
+    "perm_p": 0.6629
+   },
+   {
+    "predictor": "pagerank",
+    "n": 140,
+    "spearman": -0.031518120263406654,
+    "perm_p": 0.7176
+   },
+   {
+    "predictor": "homophily",
+    "n": 140,
+    "spearman": 0.03224547320454204,
+    "perm_p": 0.7041
+   },
+   {
+    "predictor": "feat_norm",
+    "n": 140,
+    "spearman": 0.013261550445633341,
+    "perm_p": 0.8753
+   },
+   {
+    "predictor": "A",
+    "n": 140,
+    "spearman": -0.047088408300715055,
+    "perm_p": 0.5846
+   },
+   {
+    "predictor": "B",
+    "n": 140,
+    "spearman": -0.09994970588878442,
+    "perm_p": 0.2354
+   },
+   {
+    "predictor": "C",
+    "n": 140,
+    "spearman": -0.013470075003826729,
+    "perm_p": 0.8762
+   },
+   {
+    "predictor": "D",
+    "n": 132,
+    "spearman": -0.07940914047784277,
+    "perm_p": 0.3612
+   },
+   {
+    "predictor": "E",
+    "n": 140,
+    "spearman": -0.03593186241280532,
+    "perm_p": 0.6701
+   },
+   {
+    "predictor": "F",
+    "n": 132,
+    "spearman": 0.1430867244446995,
+    "perm_p": 0.1039
+   },
+   {
+    "predictor": "label (eta^2)",
+    "n": 140,
+    "eta_squared": 0.10306889172693981,
+    "perm_p": 0.0225,
+    "eta_squared_null_mean": 0.043243939294267786
+   }
+  ]
+ },
+ "A5_beta_sensitivity": {
+  "pearson": 0.12707790864366966,
+  "spearman": 0.1446808510638298,
+  "pearson_vs_rank_beta": 0.14977841268889922,
+  "pearson_bootstrap_ci95": [
+   -0.04827247346113524,
+   0.3018134111249623
+  ],
+  "pearson_perm_p": 0.1375,
+  "cosine_pathdev_learned_vs_compass_arm": 0.044752724243718185
+ },
+ "A6_entries": {
+  "mean_abs_dev_from_1": 1.2406519779370344,
+  "max_entry": 48.148460388183594,
+  "max_entry_epoch": 59,
+  "max_entry_node_arrival_rank": 132,
+  "min_entry": 0.00037622093805111945,
+  "share_entries_below_0.1": 0.3854761904761905,
+  "top1pct_cells_mass_share": 0.2109905412217692,
+  "per_epoch_node_entropy_first10_mean": 3.327523285154051,
+  "per_epoch_node_entropy_last10_mean": 3.3913531069354925,
+  "per_epoch_node_entropy_flat": 4.941642422609304
+ },
+ "A7_outcome": {
+  "gain_mean": 0.027500003576278687,
+  "gain_sem": 0.0029297351567743306,
+  "wins": 10,
+  "n_seeds": 10,
+  "sign_test_two_sided_p": 0.001953125,
+  "paired_t": 9.386515198375978,
+  "paired_t_p": 6.045207867942767e-06,
+  "wilcoxon_p": 0.001953125,
+  "best_random_gain_mean": 0.01640000343322754,
+  "best_random_wins": 9,
+  "yardstick_pool": "2,000-schedule replicate (compass) pool, regenerated stream, val-argmax"
+ }
+}
