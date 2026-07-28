@@ -280,42 +280,6 @@ if __name__ == "__main__":
     print("all figures in", OUT)
 
 
-# ------------------------------------------------------------- fig 9: learned schedule
-# E5: the gradient-learned Cora schedule as a heatmap, plus the outer-loop trajectory.
-def fig_learned():
-    d = json.loads((HERE / "schedule_learn_cora.json").read_text())
-    W = np.load(HERE / "schedule_learn_cora.npz")["W_learned"]   # (60, 140)
-    T = W.shape[0]
-    tt = np.linspace(0.0, 1.0, T)[:, None]
-    arrival = (W * tt).sum(axis=0) / W.sum(axis=0)
-    order = np.argsort(arrival)
-
-    fig, ax = plt.subplots(1, 2, figsize=(7.2, 2.9),
-                           gridspec_kw={"width_ratios": [1.35, 1.0]})
-    im = ax[0].imshow(np.log1p(W[:, order]), aspect="auto", origin="lower",
-                      cmap="Greys", interpolation="nearest")
-    ax[0].set_xlabel("training node (sorted by learned arrival time)")
-    ax[0].set_ylabel("epoch")
-    ax[0].set_title("(a) learned schedule $W$ (log scale)")
-    cb = fig.colorbar(im, ax=ax[0], fraction=0.046, pad=0.03)
-    cb.set_label(r"$\log(1+W_{t,i})$", fontsize=7, labelpad=1)
-    cb.ax.tick_params(labelsize=6)
-    fig.subplots_adjust(wspace=0.42)
-
-    for r, traj in enumerate(d["trajectories"]):
-        steps = [p["step"] for p in traj]
-        acc = [p["val_acc"] * 100 for p in traj]
-        ax[1].plot(steps, acc, color=(INK if r == 0 else GAIN), lw=1.4,
-                   label=f"restart {r}")
-    ax[1].axhline(d["trajectories"][0][0]["val_acc"] * 100, color=MUT, lw=1.0,
-                  ls="--", label="flat start")
-    ax[1].set_xlabel("outer optimization step")
-    ax[1].set_ylabel("search validation accuracy (%)")
-    ax[1].set_title("(b) outer-loop trajectory")
-    ax[1].legend(frameon=False, fontsize=7)
-    save(fig, "fig_learned")
-
-
 # --------------------------------------------- fig 10/11: schedule matrix + compass pipeline
 # Appendix visuals: the T x N schedule as a picture, and how the compass becomes a schedule.
 def fig_schedule_matrix():
@@ -389,3 +353,155 @@ def fig_compass_pipeline():
     ax.set_title("The compass: fit on validation arrivals (top), then rebuilt into a schedule "
                  "(bottom)", fontsize=9)
     save(fig, "fig_compass_pipeline")
+
+
+# --------------------------------------------------- fig 12: staircase anatomy (E5)
+# The learned schedule's structure: raw heatmap, window tiling, and single-node windows.
+# All timing statistics quoted in captions come from learned_anatomy_cora.json.
+def _learned_w():
+    W = np.load(HERE / "schedule_learn_cora.npz")["W_learned"].astype(np.float64)
+    t_axis = np.arange(W.shape[0])
+    p = W / W.sum(axis=0, keepdims=True)
+    arrival = (p * t_axis[:, None]).sum(axis=0)
+    return W, p, arrival
+
+
+def fig_learned_staircase():
+    W, p, arrival = _learned_w()
+    T_, n = W.shape
+    order = np.argsort(arrival)
+
+    fig, ax = plt.subplots(1, 3, figsize=(7.6, 2.8),
+                           gridspec_kw={"width_ratios": [1.25, 1.0, 0.9]})
+
+    im = ax[0].imshow(np.log1p(W[:, order]), aspect="auto", origin="lower",
+                      cmap="Greys", interpolation="nearest")
+    ax[0].set_xlabel("training node (sorted by arrival)")
+    ax[0].set_ylabel("epoch")
+    ax[0].set_title("(a) learned $W$ (log scale)")
+    cb = fig.colorbar(im, ax=ax[0], fraction=0.046, pad=0.03)
+    cb.ax.tick_params(labelsize=6)
+
+    cdf = np.cumsum(p, axis=0)
+    q25 = np.array([np.searchsorted(cdf[:, i], 0.25) for i in range(n)])
+    q75 = np.array([np.searchsorted(cdf[:, i], 0.75) for i in range(n)])
+    for rank_pos, i in enumerate(order):
+        ax[1].plot([q25[i], q75[i]], [rank_pos, rank_pos], color=GAIN, lw=0.8,
+                   alpha=0.75, solid_capstyle="butt")
+    ax[1].plot(arrival[order], np.arange(n), color=INK, lw=0.0, marker=".", ms=1.6)
+    ax[1].plot([15, 45], [n + 6, n + 6], color=MUT, lw=3.0, solid_capstyle="butt")
+    ax[1].text(30, n + 11, "flat: every node spans 15–45",
+               ha="center", fontsize=6.5, color=MUT)
+    ax[1].set_xlim(0, T_); ax[1].set_ylim(-2, n + 17)
+    ax[1].set_xlabel("epoch")
+    ax[1].set_ylabel("node rank by arrival")
+    ax[1].set_title("(b) attention windows")
+
+    qs = [int(round(q * (n - 1))) for q in (0.1, 0.3, 0.5, 0.7, 0.9)]
+    for k, rank_pos in enumerate(qs):
+        i = order[rank_pos]
+        color = INK if k == 2 else MUT
+        ax[2].plot(np.arange(T_), p[:, i] * T_, color=color, lw=1.2 if k == 2 else 0.9)
+    ax[2].axhline(1.0, color=GAIN, lw=1.0, ls="--", label="flat (all epochs equal)")
+    ax[2].set_yscale("log")
+    ax[2].set_xlabel("epoch")
+    ax[2].set_ylabel(r"attention $\times\, T$ (log)")
+    ax[2].set_title("(c) five sampled nodes")
+    ax[2].legend(frameon=False, fontsize=6.5, loc="lower center")
+    fig.subplots_adjust(wspace=0.5)
+    save(fig, "fig_learned_staircase")
+
+
+# ------------------------------------------------------- fig 13: E5 held-out outcome
+# Search trajectories against the held-out result, and the per-seed evidence.
+def fig_learned_outcome():
+    d = json.loads((HERE / "schedule_learn_cora.json").read_text())
+    flat = np.array(d["flat_test"]) * 100
+    learned = np.array(d["learned_test"]) * 100
+    bestrand = np.array(d["best_random_test"]) * 100
+
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 2.8),
+                           gridspec_kw={"width_ratios": [1.15, 1.0]})
+
+    for r, traj in enumerate(d["trajectories"]):
+        steps = [pt["step"] for pt in traj]
+        acc = [pt["val_acc"] * 100 for pt in traj]
+        ax[0].plot(steps, acc, color=(INK if r == 0 else GAIN), lw=1.3,
+                   label=f"restart {r} (search val)")
+    ax[0].axhline(d["trajectories"][0][0]["val_acc"] * 100, color=MUT, lw=1.0,
+                  ls="--", label="flat start (search val)")
+    ax[0].axhline(learned.mean(), color=LOSS, lw=1.2, ls=":",
+                  label=f"held-out test, learned ({learned.mean():.1f})")
+    ax[0].set_xlabel("outer optimization step")
+    ax[0].set_ylabel("accuracy (%)")
+    ax[0].set_title("(a) search curves vs the held-out result")
+    ax[0].legend(frameon=False, fontsize=6.5, loc="lower right")
+
+    xs = {"flat": 0, "best random\n(val-selected)": 1, "learned": 2}
+    for f, b, l in zip(flat, bestrand, learned):
+        ax[1].plot([0, 2], [f, l], color=MUT, lw=0.6, alpha=0.6, zorder=1)
+    ax[1].scatter(np.zeros(10), flat, s=14, color=MUT, zorder=2)
+    ax[1].scatter(np.ones(10), bestrand, s=14, color=INK, zorder=2)
+    ax[1].scatter(np.full(10, 2), learned, s=14, color=GAIN, zorder=2)
+    for x, arr, c in ((0, flat, MUT), (1, bestrand, INK), (2, learned, GAIN)):
+        ax[1].plot([x - 0.18, x + 0.18], [arr.mean()] * 2, color=c, lw=2.2)
+    ax[1].set_xticks(list(xs.values()), list(xs.keys()), fontsize=7.5)
+    ax[1].set_ylabel("held-out test accuracy (%)")
+    ax[1].set_title("(b) ten held-out seeds")
+    fig.subplots_adjust(wspace=0.32)
+    save(fig, "fig_learned_outcome")
+
+
+# ------------------------------------------------ fig 14: the unrolled bilevel loop (E5)
+# Pedagogical diagram: how a gradient reaches the schedule through an entire training run.
+def fig_learned_loop():
+    fig, ax = plt.subplots(figsize=(7.2, 3.0))
+    ax.set_xlim(0, 12); ax.set_ylim(-0.4, 6.2); ax.axis("off")
+
+    def box(x, y, w, h, text, fc="#f2f4f5", ec=INK, fs=8, bold=False):
+        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, lw=1.1))
+        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fs,
+                fontweight="bold" if bold else "normal")
+
+    def arrow(x0, y0, x1, y1, color=INK, text=None, ty=0.25, fs=7, ls="-"):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="->", color=color, lw=1.2,
+                                    linestyle=ls))
+        if text:
+            ax.text((x0 + x1) / 2, (y0 + y1) / 2 + ty, text, ha="center",
+                    fontsize=fs, color=color)
+
+    # top row: from free logits to a feasible schedule
+    box(0.2, 4.4, 2.1, 1.3, "logits $Z$\n(unconstrained)", fc="white")
+    box(3.0, 4.4, 1.7, 1.3, "$e^{Z}$\n(positive)")
+    box(5.4, 4.4, 2.4, 1.3, "Sinkhorn\n(both budgets hold)")
+    box(8.5, 4.4, 2.2, 1.3, "schedule $W$\n(equal budget)", fc="#e7f0ec", bold=True)
+    arrow(2.3, 5.05, 3.0, 5.05)
+    arrow(4.7, 5.05, 5.4, 5.05)
+    arrow(7.8, 5.05, 8.5, 5.05)
+
+    # middle row: the unrolled deterministic training run
+    box(0.2, 1.9, 1.5, 1.2, r"$\theta_0$", fs=9)
+    box(2.4, 1.9, 1.5, 1.2, r"$\theta_1$", fs=9)
+    box(4.6, 1.9, 1.5, 1.2, r"$\cdots$", fs=9)
+    box(6.8, 1.9, 1.5, 1.2, r"$\theta_{60}$", fs=9)
+    box(9.3, 1.9, 2.3, 1.2, "validation\nloss", fc="#fdf0ef")
+    arrow(1.7, 2.5, 2.4, 2.5, text="step 1", ty=0.3)
+    arrow(3.9, 2.5, 4.6, 2.5)
+    arrow(6.1, 2.5, 6.8, 2.5, text="step 60", ty=0.3)
+    arrow(8.3, 2.5, 9.3, 2.5)
+    for x in (3.15, 5.35, 7.55):
+        arrow(9.2, 4.35, x, 3.15, color=MUT)
+    ax.text(2.6, 3.75, "row $W_t$ weights every\nexample's loss at step $t$",
+            ha="center", fontsize=7, color=MUT)
+    ax.text(4.0, 1.5, "deterministic inner loop: functional GCN + functional Adam, "
+            "no dropout, 2 search seeds", ha="center", fontsize=7, color=MUT)
+
+    # the hypergradient: one reverse pass through everything
+    arrow(10.45, 1.85, 10.45, 0.6, color=LOSS)
+    arrow(10.45, 0.6, 1.3, 0.6, color=LOSS)
+    arrow(1.3, 0.6, 1.3, 4.35, color=LOSS)
+    ax.text(5.9, 0.12, "one outer gradient: backpropagated through all 60 steps and "
+            "the projection into $Z$ (Adam on $Z$, 150 steps, 2 restarts)",
+            ha="center", fontsize=7.5, color=LOSS)
+    save(fig, "fig_learned_loop")
