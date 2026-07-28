@@ -4,7 +4,7 @@ Every novelty-bearing claim in the paper, mapped to our evidence and the prior a
 contest it. Verdicts: **ours** | **ours-narrowed** | **confirmation** | **needs-attribution** |
 **retracted** | **PENDING** (reading incomplete). Feeds Appendix F of the manuscript.
 
-Last updated: 2026-07-25 (session: manuscript rewrite, phase 1–2).
+Last updated: 2026-07-28 (session: E5 main-text chapter expansion).
 
 | # | Claim | Where stated | Our evidence | Closest prior art | Verdict |
 |---|---|---|---|---|---|
@@ -145,3 +145,28 @@ for the expanded related work).
   variance is real and probe F's column is close to noise. Anatomy negatives don't hinge on it
   (surface-stat space has zero seed variance and fails identically); the caveat is attenuation
   of probe-column signal. S3 text now states the measured result; E0 bullet annotated.
+
+## E5 chapter expansion (2026-07-28, second session)
+
+New claims introduced by the main-text chapter (sec:learned), all computed by
+`learned_anatomy.py` from existing artifacts (no new training):
+
+| # | Claim | Where stated | Evidence | Verdict |
+|---|---|---|---|---|
+| 13 | The learned schedule is a soft serialization: arrivals span 56/60 epochs tiling near-uniformly (grid r=0.99, max gap 2.4), median window IQR 6 epochs, median mass within +-3 epochs of arrival 0.32; vs top-20-by-val random schedules: span 31, IQR 26, mass 0.08. Effective support ~18 epochs in BOTH learned and top-random (spikiness is the parameterization; the organization is what was learned) | §Results II anatomy + fig_learned_staircase | learned_anatomy_cora.json A1 | **ours** |
+| 14 | No measured coordinate predicts the learned arrival order: 12 tests (5 coords, 6 probes, label eta^2), none clears Bonferroni 0.004; all rank corrs inside n=140 null band 0.17; closest is label eta^2=0.10 (null 0.04, p=0.022) flagged for larger-n re-examination | §Results II predictors + Table | learned_anatomy_cora.json A4, 10k perms each | **ours** |
+| 15 | The learned path is not the compass: corr(arrival, beta)=+0.13 with bootstrap CI [-0.05,+0.30], perm p=0.14; whole-schedule cosine of deviations-from-flat = 0.045 | §Results II predictors | learned_anatomy_cora.json A5 | **ours** |
+| 16 | Winner's-curse yardstick pool CORRECTED: best val-selected random schedule comes from the 2,000-schedule replicate (compass) pool, not "8,000 random draws" as the previous appendix stated | §Results II guards + App run details | schedule_learn.py loads replicate_cora.npz val (2,000 entries) | **fixed 2026-07-28** |
+| 17 | Sinkhorn budget honesty: 15 iterations ending on a column rescale make column budgets exact and row budgets accurate to 0.36/140 (0.26%) | §Results II parameterization | learned_anatomy_cora.json header | **ours** (stated in text) |
+| 18 | Worked 2x2 example: theta_2 = 3/8 + w/8 under eta=1/2, two quadratic examples; timing gradient exists because late attention persists more than early | §Results II unrolling | symbolic derivation re-verified 2026-07-28 (theta_{t+1}=(1-eta)theta_t + eta*w_B/2) | **ours** (math) |
+
+Reading log additions (all read 2026-07-28, notes in library, cite-verified):
+
+| Paper | Status | Key takeaways for us |
+|---|---|---|
+| franceschi2018bilevel | ✅ agent cover-to-cover | Inner problem = argmin of training loss; T-step dynamics is the APPROXIMATE problem (Eqs 5-6); Thm 3.2 = convergence of infima + minimizer SETS under compact Λ, unique inner minimizer, uniform iterate convergence. E5 instantiates the approximate problem but sits OUTSIDE the analysis (per-epoch weights = no fixed inner objective) — text says so. Per-step LR/momentum contemplated as outer vars; no per-example weights anywhere |
+| lorraine2020implicit | ✅ agent cover-to-cover | IFT + truncated Neumann inverse-Hessian; requires grad L_T = 0 at diff point (Thm 1); unrolling FROM w* ≡ i-term Neumann (Thm 2, needs w_0=w*). Millions of hyperparams = per-parameter weight decay/distillation/augmentation, all TIME-CONSTANT; §4.3 excludes optimizer (trajectory-only) hyperparams → a time-indexed schedule is invisible to IFT at stationarity, which is our stated justification. No truncation bias applies to E5 (60-step outcome IS the objective) |
+| metz2019understanding | ✅ agent cover-to-cover | ICML 2019 confirmed. Outer gradient = product of Hessians over the unroll, exponential growth (§2.3, App A); surface becomes less smooth / near-discontinuous with horizon (Fig 2); truncation dilemma verbatim (abstract). NEVER says "ill-conditioned"; "chaotic" only once in App D.1 — our text avoids both. §2.3 evidence is hyperparameters (LR/momentum), not just learned optimizers → scoping to unrolled outer problems is fair; bias half doesn't apply to E5 (no truncation) |
+| wang2018dataset | ✅ agent cover-to-cover (v3 PDF) | Multi-step distillation: per-step distilled batches + per-(step,epoch) LRs (Sec 3.4 Eq 9) → their object IS partly time-indexed; unroll is short (≤30 updates); labels fixed; no real-example weighting, no marginal constraints anywhere. Novelty claim must keep all three qualifiers: time-indexed × real examples × pinned marginals — chapter text does |
+| mena2018gumbelsinkhorn | ✅ agent cover-to-cover | S(X) = truncated alternating normalization of exp(X) — literally our map at τ=1 (they use τ tuned, L=20, Gumbel noise in all experiments). Thm 1 (S(X/τ)→hard permutation) is SQUARE-ONLY (Birkhoff); our rectangular case = transportation polytope → cite them for parameterization+vocabulary, sinkhorn1967 for general marginals — chapter text does. Their truncation also ends on column normalize (columns exact) |
+| bengio2000gradient | ⚠ metadata-only (paywalled, like ding2019dominant) | Cited ONLY for what the abstract supports: hyperparameter gradients of a model selection criterion via Cholesky backprop (quadratic case) / implicit function theorem (general). NOT an unrolled-through-training paper — text places it as lineage origin only. Spot-check vs PDF pre-submission if quoted further |
