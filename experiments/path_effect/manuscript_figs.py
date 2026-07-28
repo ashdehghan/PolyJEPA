@@ -278,3 +278,39 @@ if __name__ == "__main__":
     fig_mechanism()
     fig_selection()
     print("all figures in", OUT)
+
+
+# ------------------------------------------------------------- fig 9: learned schedule
+# E5: the gradient-learned Cora schedule as a heatmap, plus the outer-loop trajectory.
+def fig_learned():
+    d = json.loads((HERE / "schedule_learn_cora.json").read_text())
+    W = np.load(HERE / "schedule_learn_cora.npz")["W_learned"]   # (60, 140)
+    T = W.shape[0]
+    tt = np.linspace(0.0, 1.0, T)[:, None]
+    arrival = (W * tt).sum(axis=0) / W.sum(axis=0)
+    order = np.argsort(arrival)
+
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 2.9),
+                           gridspec_kw={"width_ratios": [1.35, 1.0]})
+    im = ax[0].imshow(np.log1p(W[:, order]), aspect="auto", origin="lower",
+                      cmap="Greys", interpolation="nearest")
+    ax[0].set_xlabel("training node (sorted by learned arrival time)")
+    ax[0].set_ylabel("epoch")
+    ax[0].set_title("(a) learned schedule $W$ (log scale)")
+    cb = fig.colorbar(im, ax=ax[0], fraction=0.046, pad=0.03)
+    cb.set_label(r"$\log(1+W_{t,i})$", fontsize=7, labelpad=1)
+    cb.ax.tick_params(labelsize=6)
+    fig.subplots_adjust(wspace=0.42)
+
+    for r, traj in enumerate(d["trajectories"]):
+        steps = [p["step"] for p in traj]
+        acc = [p["val_acc"] * 100 for p in traj]
+        ax[1].plot(steps, acc, color=(INK if r == 0 else GAIN), lw=1.4,
+                   label=f"restart {r}")
+    ax[1].axhline(d["trajectories"][0][0]["val_acc"] * 100, color=MUT, lw=1.0,
+                  ls="--", label="flat start")
+    ax[1].set_xlabel("outer optimization step")
+    ax[1].set_ylabel("search validation accuracy (%)")
+    ax[1].set_title("(b) outer-loop trajectory")
+    ax[1].legend(frameon=False, fontsize=7)
+    save(fig, "fig_learned")

@@ -117,3 +117,18 @@ pre-submission. Dead bib entries (cited nowhere): garipov2018mode, frankle2020ea
 toneva2019forgetting, paul2021grand, sener2018coreset, skenderi2024graphjepa,
 weinshall2020theory — keep or cut deliberately in the restructure (several are natural cites
 for the expanded related work).
+
+## E5 outcome (2026-07-28)
+
+- **Run**: `schedule_learn.py`, Cora, 150 outer steps x 2 restarts, ~2.8h. Artifact:
+  `schedule_learn_cora.json` (+ `.npz`, untracked).
+- **Result**: held-out (seeds 200-209, standard pipeline) flat 0.7894, learned 0.8169 =
+  **+2.75 pts, 10/10 wins**. Primary criterion (beat compass +1.9): PASS. Secondary
+  (beat best val-selected random, +1.64): PASS.
+- **Diagnostics**: search val_acc at selected step 86.9% (vs 78.7% flat start) -> ~8 pts
+  search-side, 2.75 survives held-out (winner's curse visible, guard held).
+  corr(arrival(W_learned), beta) = +0.13 -> not the compass direction.
+  mean|W-1| = 1.24, max entry 48. Heatmap (fig_learned): staged/serialized structure,
+  arrival windows tile the run.
+- **Claim discipline**: appendix reports one dataset, no transfer claim, winner's-curse
+  gap stated in the same breath as the headline.
