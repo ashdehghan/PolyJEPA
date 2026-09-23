@@ -1,0 +1,9 @@
+Cora: reference seed 0 loaded (140 train rows, probes ['A', 'B', 'C', 'D', 'E', 'F'])
+  seed 1: computing (200 epochs per probe)…
+  seed 1: done (14669s)
+  seed 2: computing (200 epochs per probe)…
+  seed 2: done (26099s)
+  0v1: mean Spearman +0.739, kNN overlap 0.242
+  0v2: mean Spearman +0.756, kNN overlap 0.266
+  1v2: mean Spearman +0.746, kNN overlap 0.246
+wrote seed_stability_cora.json (26099s total)

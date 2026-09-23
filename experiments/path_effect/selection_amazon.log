@@ -1,0 +1,125 @@
+
+============================================================
+photo: 7650 nodes, 160 train, 8 classes
+============================================================
+  no fingerprint cache — skipping fps_probe and ccs_pc1 arms
+  computing GIS difficulty …
+  computing CLNode difficulty …
+  probcover r*=0.1516 (purity 0.968); sweep radii [0.1516, 0.3383, 0.4273]
+  evaluated 120 subsets x 10 seeds + flat (3478s)   flat_100: 0.6795
+
+  arm                k%    test   vs rand     sem   wins
+  random              5  0.4494        --
+  random_strat        5  0.5643   +0.1149           10/10
+  fps_sgc             5  0.0871   -0.3623  0.0125    0/10
+  easy                5  0.3327   -0.1167  0.0118    0/10
+  hard                5  0.4264   -0.0230  0.0243    4/10
+  easy_strat          5  0.4657   +0.0163  0.0203    7/10
+  hard_strat          5  0.4415   -0.0079  0.0520    7/10
+  clnode_easy         5  0.2163   -0.2331  0.0052    0/10
+  clnode_hard         5  0.1670   -0.2824  0.0228    0/10
+  probcover           5  0.7236   +0.2742  0.0263   10/10
+  probcover_r1        5  0.5989   +0.1495  0.0144   10/10
+  probcover_r2        5  0.6025   +0.1531  0.0071   10/10
+  random             10  0.5777        --
+  random_strat       10  0.6324   +0.0547            9/10
+  fps_sgc            10  0.3908   -0.1869  0.0175    0/10
+  easy               10  0.6333   +0.0556  0.0138    9/10
+  hard               10  0.3845   -0.1932  0.0451    0/10
+  easy_strat         10  0.5456   -0.0321  0.0182    4/10
+  hard_strat         10  0.4782   -0.0995  0.0548    3/10
+  clnode_easy        10  0.2177   -0.3600  0.0068    0/10
+  clnode_hard        10  0.1294   -0.4483  0.0142    0/10
+  probcover          10  0.6468   +0.0691  0.0774    8/10
+  probcover_r1       10  0.6375   +0.0598  0.0353    6/10
+  probcover_r2       10  0.6394   +0.0617  0.0555    6/10
+  random             20  0.6412        --
+  random_strat       20  0.6638   +0.0226            8/10
+  fps_sgc            20  0.5971   -0.0441  0.0320    3/10
+  easy               20  0.6360   -0.0052  0.0193    5/10
+  hard               20  0.4475   -0.1937  0.0781    2/10
+  easy_strat         20  0.7295   +0.0883  0.0238    9/10
+  hard_strat         20  0.5036   -0.1376  0.0878    5/10
+  clnode_easy        20  0.2328   -0.4084  0.0212    0/10
+  clnode_hard        20  0.2415   -0.3997  0.0164    0/10
+  probcover          20  0.7320   +0.0908  0.0434    7/10
+  probcover_r1       20  0.7305   +0.0893  0.0629    8/10
+  probcover_r2       20  0.7447   +0.1035  0.0347    8/10
+  random             50  0.6808        --
+  random_strat       50  0.7061   +0.0253            8/10
+  fps_sgc            50  0.6743   -0.0065  0.0664    8/10
+  easy               50  0.7450   +0.0642  0.0228    9/10
+  hard               50  0.5961   -0.0847  0.0241    1/10
+  easy_strat         50  0.7762   +0.0954  0.0335    9/10
+  hard_strat         50  0.6467   -0.0341  0.0409    6/10
+  clnode_easy        50  0.4229   -0.2579  0.0305    0/10
+  clnode_hard        50  0.5318   -0.1490  0.0168    0/10
+  probcover          50  0.5789   -0.1019  0.0722    4/10
+  probcover_r1       50  0.7050   +0.0242  0.0337    6/10
+  probcover_r2       50  0.7076   +0.0268  0.0363    5/10
+
+  wrote selection_photo.json + .npz
+Downloading https://github.com/shchur/gnn-benchmark/raw/master/data/npz/amazon_electronics_computers.npz
+Processing...
+Done!
+
+============================================================
+computers: 13752 nodes, 200 train, 10 classes
+============================================================
+  no fingerprint cache — skipping fps_probe and ccs_pc1 arms
+  computing GIS difficulty …
+  computing CLNode difficulty …
+  probcover r*=0.1095 (purity 0.960); sweep radii [0.1095, 0.2875, 0.3564]
+  evaluated 120 subsets x 10 seeds + flat (7660s)   flat_100: 0.3680
+
+  arm                k%    test   vs rand     sem   wins
+  random              5  0.3255        --
+  random_strat        5  0.3389   +0.0134            6/10
+  fps_sgc             5  0.0681   -0.2574  0.0125    0/10
+  easy                5  0.1873   -0.1383  0.0090    0/10
+  hard                5  0.1737   -0.1519  0.0153    0/10
+  easy_strat          5  0.2273   -0.0982  0.0121    0/10
+  hard_strat          5  0.1980   -0.1275  0.0374    2/10
+  clnode_easy         5  0.1902   -0.1353  0.0086    0/10
+  clnode_hard         5  0.1613   -0.1643  0.0147    0/10
+  probcover           5  0.3233   -0.0023  0.0459    3/10
+  probcover_r1        5  0.3469   +0.0213  0.0156    8/10
+  probcover_r2        5  0.3835   +0.0579  0.0219    8/10
+  random             10  0.3680        --
+  random_strat       10  0.3381   -0.0300            4/10
+  fps_sgc            10  0.2136   -0.1544  0.0302    1/10
+  easy               10  0.2048   -0.1632  0.0183    0/10
+  hard               10  0.3658   -0.0022  0.0177    4/10
+  easy_strat         10  0.4001   +0.0321  0.0265    5/10
+  hard_strat         10  0.0927   -0.2753  0.0325    0/10
+  clnode_easy        10  0.2317   -0.1363  0.0188    1/10
+  clnode_hard        10  0.2753   -0.0927  0.0298    1/10
+  probcover          10  0.3644   -0.0036  0.0404    6/10
+  probcover_r1       10  0.3089   -0.0591  0.0507    4/10
+  probcover_r2       10  0.4130   +0.0450  0.0247    7/10
+  random             20  0.3159        --
+  random_strat       20  0.3445   +0.0286            6/10
+  fps_sgc            20  0.6903   +0.3744  0.0313   10/10
+  easy               20  0.3022   -0.0137  0.0501    4/10
+  hard               20  0.3061   -0.0098  0.0394    5/10
+  easy_strat         20  0.6083   +0.2924  0.0333   10/10
+  hard_strat         20  0.1342   -0.1817  0.0371    1/10
+  clnode_easy        20  0.2360   -0.0799  0.0254    1/10
+  clnode_hard        20  0.2160   -0.0999  0.0267    1/10
+  probcover          20  0.2863   -0.0296  0.0697    4/10
+  probcover_r1       20  0.2594   -0.0565  0.0350    1/10
+  probcover_r2       20  0.4007   +0.0848  0.0490    8/10
+  random             50  0.3320        --
+  random_strat       50  0.3095   -0.0224            5/10
+  fps_sgc            50  0.5164   +0.1844  0.0501    9/10
+  easy               50  0.5271   +0.1951  0.0408   10/10
+  hard               50  0.2856   -0.0464  0.0645    5/10
+  easy_strat         50  0.5352   +0.2032  0.0600    8/10
+  hard_strat         50  0.2237   -0.1083  0.0570    3/10
+  clnode_easy        50  0.3960   +0.0640  0.0579    7/10
+  clnode_hard        50  0.4466   +0.1146  0.0668    7/10
+  probcover          50  0.3969   +0.0649  0.0970    5/10
+  probcover_r1       50  0.4894   +0.1574  0.0547    8/10
+  probcover_r2       50  0.4653   +0.1333  0.0771    8/10
+
+  wrote selection_computers.json + .npz

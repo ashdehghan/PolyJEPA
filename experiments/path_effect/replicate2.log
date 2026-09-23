@@ -1,0 +1,58 @@
+########## CiteSeer 23:24
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.x
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.tx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.allx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.y
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.ty
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.ally
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.graph
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.citeseer.test.index
+Processing...
+Done!
+CiteSeer: 3327 nodes, 120 train, 6 classes
+scored 2000 schedules (3902s)
+
+CiteSeer  (flat tail K=30; 10 unseen init seeds; test set)
+arm                           test   vs flat     sem   wins
+flat                        0.6696        --               
+compass (learned)           0.6753   +0.0057  0.0036    7/10
+compass REVERSED            0.6595   -0.0101  0.0030    1/10
+hand-crafted: degree        0.6493   -0.0203  0.0040    0/10
+hand-crafted: clustering    0.6563   -0.0133  0.0031    0/10
+hand-crafted: pagerank      0.6524   -0.0172  0.0038    1/10
+hand-crafted: homophily     0.6535   -0.0161  0.0044    1/10
+hand-crafted: feat_norm     0.6454   -0.0242  0.0042    0/10
+random order #1             0.6664   -0.0032  0.0031    3/10
+random order #2             0.6616   -0.0080  0.0035    2/10
+random order #3             0.6715   +0.0019  0.0035    6/10
+
+wrote replicate_citeseer.json + .npz  (4595s total)
+########## PubMed 00:41
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.x
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.tx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.allx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.y
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.ty
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.ally
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.graph
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.test.index
+Processing...
+Done!
+PubMed: 19717 nodes, 60 train, 3 classes
+scored 2000 schedules (7285s)
+
+PubMed  (flat tail K=30; 10 unseen init seeds; test set)
+arm                           test   vs flat     sem   wins
+flat                        0.7791        --               
+compass (learned)           0.7597   -0.0194  0.0067    2/10
+compass REVERSED            0.7143   -0.0648  0.0026    0/10
+hand-crafted: degree        0.7604   -0.0187  0.0030    0/10
+hand-crafted: clustering    0.7616   -0.0175  0.0036    0/10
+hand-crafted: pagerank      0.7610   -0.0181  0.0026    0/10
+hand-crafted: homophily     0.7572   -0.0219  0.0018    0/10
+hand-crafted: feat_norm     0.7816   +0.0025  0.0039    6/10
+random order #1             0.7708   -0.0083  0.0024    1/10
+random order #2             0.7786   -0.0005  0.0035    5/10
+random order #3             0.7779   -0.0012  0.0020    3/10
+
+wrote replicate_pubmed.json + .npz  (8533s total)

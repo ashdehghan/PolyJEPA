@@ -1,0 +1,26 @@
+/home/samantha/workspace/workflow-agent-4182350bbb21d6f6/workspace/runs/main/node-4a177b3e/data/workspace/PolyJEPA/experiments/path_effect/schedule_learn.py:75: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/Context.cpp:816.)
+  return torch.sparse_coo_tensor(ei, vals, (num_nodes, num_nodes)).coalesce()
+Cora: n_train=140, unrolling 60 steps x 2 seeds
+/home/samantha/workspace/workflow-agent-4182350bbb21d6f6/workspace/runs/main/node-4a177b3e/data/workspace/PolyJEPA/experiments/path_effect/schedule_learn.py:182: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:822.)
+  traj.append({"step": step, "val_ce": float(val_ce), "val_acc": val_acc})
+  restart 0 step   0: search val_ce=0.7177 val_acc=0.7840 (25s)
+  restart 0 step  25: search val_ce=0.5456 val_acc=0.8260 (566s)
+  restart 0 step  50: search val_ce=0.5097 val_acc=0.8390 (1106s)
+  restart 0 step  75: search val_ce=0.4872 val_acc=0.8490 (1624s)
+  restart 0 step 100: search val_ce=0.4703 val_acc=0.8500 (2178s)
+  restart 0 step 125: search val_ce=0.4572 val_acc=0.8500 (2697s)
+  restart 1 step   0: search val_ce=0.7154 val_acc=0.7870 (3317s)
+  restart 1 step  25: search val_ce=0.5350 val_acc=0.8300 (4315s)
+  restart 1 step  50: search val_ce=0.4761 val_acc=0.8540 (5319s)
+  restart 1 step  75: search val_ce=0.4391 val_acc=0.8560 (6318s)
+  restart 1 step 100: search val_ce=0.4176 val_acc=0.8600 (7315s)
+  restart 1 step 125: search val_ce=0.4053 val_acc=0.8660 (8321s)
+best: restart 1 step 149 val_ce=0.3961 (9283s)
+
+flat: 0.7894
+learned:      0.8169  gain +2.75 pts (10/10)
+best random (val-selected): 0.8058  gain +1.64 pts
+corr(arrival(W_learned), beta) = +0.127   mean |W-1| = 1.241
+
+wrote schedule_learn_cora.json + .npz (10083s total)
